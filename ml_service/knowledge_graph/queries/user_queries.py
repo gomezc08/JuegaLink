@@ -1,6 +1,6 @@
-from .connector import Connector
+from ..connector import Connector
 
-class Queries:
+class UserQueries:
     def __init__(self):
         self.connector = Connector()
 
@@ -72,7 +72,6 @@ class Queries:
         for record in result:
             print(f"Nodes involved: {record['a']['username']}, {record['b']['username']}")
 
-
     def remove_friend(self, user_username:str, friend_username:str):
         # connect to db.
         driver = self.connector.connect()
@@ -97,8 +96,8 @@ class Queries:
             print(f"Nodes involved: {record['a']['username']}, {record['b']['username']}")
 
 if __name__ == "__main__":
-    queries = Queries()
+    queries = UserQueries()
     #queries.user_signup("john", 25, "New York", "NY", "I like to code.")
     #queries.user_signup("bubby", 25, "New York", "NY", "I like to code.")
     #queries.add_friend("john", "bubby")
-    queries.remove_friend("john", "bubby")
+    #queries.remove_friend("john", "bubby")
