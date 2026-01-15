@@ -39,7 +39,7 @@ class RAG:
         - The context contains the answer to the question. Extract and present the information clearly.
         - If the context shows usernames, names, or other data, that IS the answer.
         - Format your response naturally, listing the information from the context.
-        - If the context is empty [], say "I don't have information about that."
+        - If the context is empty [], you may assume the user is asking a question with no answer.
 
         Answer:"""
         )
