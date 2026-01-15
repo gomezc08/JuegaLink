@@ -1,6 +1,6 @@
 from ..connector import Connector
 
-class UserQueries:
+class User:
     def __init__(self):
         self.connector = Connector()
 
@@ -96,8 +96,8 @@ class UserQueries:
             print(f"Nodes involved: {record['a']['username']}, {record['b']['username']}")
 
 if __name__ == "__main__":
-    queries = UserQueries()
-    #queries.user_signup("john", 25, "New York", "NY", "I like to code.")
-    #queries.user_signup("bubby", 25, "New York", "NY", "I like to code.")
-    #queries.add_friend("john", "bubby")
+    queries = User()
+    queries.user_signup("john", 25, "New York", "NY", "I like to code.")
+    queries.user_signup("bubby", 25, "New York", "NY", "I like to code.")
+    queries.add_friend("john", "bubby")
     #queries.remove_friend("john", "bubby")

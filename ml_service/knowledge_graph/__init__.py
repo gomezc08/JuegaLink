@@ -1,4 +1,4 @@
 from .connector import Connector
-from .queries import UserQueries, SkillLevelQueries, SportQueries, FieldQueries
+from .methods import User, SkillLevel, Sport, Field
 
-__all__ = ["Connector", "UserQueries", "SkillLevelQueries", "SportQueries", "FieldQueries"]
+__all__ = ["Connector", "User", "SkillLevel", "Sport", "Field"]

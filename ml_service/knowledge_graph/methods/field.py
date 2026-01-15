@@ -1,6 +1,6 @@
 from ..connector import Connector
 
-class FieldQueries:
+class Field:
     def __init__(self):
         self.connector = Connector()
 
@@ -110,7 +110,7 @@ class FieldQueries:
             print(f"Field '{field_name}' at '{address}' deleted.")
 
 if __name__ == "__main__":
-    queries = FieldQueries()
+    queries = Field()
     #queries.create_field("Central Park Field", "123 Main St, New York, NY")
     #queries.get_field("Central Park Field")
     #queries.get_field_by_address("123 Main St, New York, NY")
