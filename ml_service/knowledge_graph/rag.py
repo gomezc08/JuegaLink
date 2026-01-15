@@ -2,6 +2,7 @@ from .connector import Connector
 from langchain_openai import ChatOpenAI
 from langchain_classic.chains import GraphCypherQAChain
 from langchain_community.graphs import Neo4jGraph
+from langchain_core.prompts import PromptTemplate
 import os
 from dotenv import load_dotenv
 
@@ -21,10 +22,33 @@ class RAG:
         # define llm.
         llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
+        # create custom QA prompt that better handles context
+        # The context comes as a list of dicts from the Cypher query results
+        qa_prompt = PromptTemplate(
+            input_variables=["context", "question"],
+            template="""You are a helpful assistant that answers questions based on the provided context from a Neo4j graph database query.
+
+        The context below contains the DIRECT RESULTS from a Cypher query that was executed to answer the question. The context IS the answer to the question.
+
+        Context (query results):
+        {context}
+
+        Question: {question}
+
+        Instructions:
+        - The context contains the answer to the question. Extract and present the information clearly.
+        - If the context shows usernames, names, or other data, that IS the answer.
+        - Format your response naturally, listing the information from the context.
+        - If the context is empty [], say "I don't have information about that."
+
+        Answer:"""
+        )
+
         # create chain.
         chain = GraphCypherQAChain.from_llm(
             llm=llm,
             graph=self.graph,
+            qa_prompt=qa_prompt,
             return_intermediate_steps=True,
             allow_dangerous_requests=True,
         )
@@ -37,5 +61,5 @@ class RAG:
 
 if __name__ == "__main__":
     rag = RAG()
-    result = rag.query_rag_chain("Who are John's friends?")
+    result = rag.query_rag_chain("Who are john's friends?")
     print(result)
