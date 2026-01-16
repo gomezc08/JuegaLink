@@ -1,2 +1,66 @@
-<h1>Home#index</h1>
-<p>Find me in app/views/home/index.html.erb</p>
+<!-- Hero Section -->
+<div class="hero-section">
+  <div class="hero-content text-center">
+    <h1 class="display-4 fw-bold mb-4">Discover Your Next Game</h1>
+    <p class="lead mb-4">Connect with sports enthusiasts of all levels. Find opportunities to play, compete, and grow in your favorite sport.</p>
+    <%= link_to "Get Started", home_login_path, class: "btn cta-button" %>
+  </div>
+</div>
+
+<!-- Features Section -->
+<div class="row g-4 mb-5">
+  <div class="col-md-4">
+    <div class="card feature-card text-center p-4">
+      <div class="card-body">
+        <div class="feature-icon">⚽</div>
+        <h3 class="card-title mb-3">Find Games</h3>
+        <p class="card-text">Discover local games, tournaments, and pickup matches in your area. Never miss an opportunity to play.</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card feature-card text-center p-4">
+      <div class="card-body">
+        <div class="feature-icon" style="animation-delay: 0.2s;">🤝</div>
+        <h3 class="card-title mb-3">Connect</h3>
+        <p class="card-text">Meet fellow athletes and build your sports community. Connect with players who share your passion.</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card feature-card text-center p-4">
+      <div class="card-body">
+        <div class="feature-icon" style="animation-delay: 0.4s;">🏆</div>
+        <h3 class="card-title mb-3">Compete</h3>
+        <p class="card-text">Join leagues and tournaments to test your skills. Whether you're a beginner or pro, there's a place for you.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Stats Section -->
+<div class="stats-section text-center">
+  <div class="row g-4">
+    <div class="col-md-4">
+      <span class="stat-number">1000+</span>
+      <span class="stat-label">Active Players</span>
+    </div>
+    <div class="col-md-4">
+      <span class="stat-number">500+</span>
+      <span class="stat-label">Games Weekly</span>
+    </div>
+    <div class="col-md-4">
+      <span class="stat-number">50+</span>
+      <span class="stat-label">Sports & Activities</span>
+    </div>
+  </div>
+</div>
+
+<!-- Call to Action -->
+<div class="row justify-content-center mt-5 mb-5">
+  <div class="col-md-8 text-center">
+    <h2 class="mb-4">Ready to Get in the Game?</h2>
+    <p class="lead mb-4">Join thousands of athletes already discovering new opportunities on Juega Link.</p>
+    <%= link_to "Create Your Account", home_login_path, class: "btn btn-primary btn-lg px-5" %>
+  </div>
+</div>
