@@ -1,4 +1,4 @@
-# PlayBall
+# JuegaLink
 Platform that allows all sports enthusiasts of all levels to discover more opportunities to interact with their associated sport
 
 ## Prerequisites
