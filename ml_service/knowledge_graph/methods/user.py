@@ -1,6 +1,12 @@
 from ..connector import Connector
 from datetime import datetime
+import logging
 
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(message)s'
+)
+logger = logging.getLogger(__name__)
 class User:
     def __init__(self):
         self.connector = Connector()
@@ -39,13 +45,17 @@ class User:
                 "updated_at": now
             }
 
+            logger.info(f"<user> Adding user to Neo4j DB: {params}")
+
             result, summary, keys = driver.execute_query(query, params)
 
             if result:
                 user_data = dict(result[0]['u'])
+                logger.info(f"<user> User added to Neo4j DB: {user_data}")
                 return user_data
             return None
         except Exception as e:
+            logger.error(f"<user> Error adding user to Neo4j DB: {e}")
             raise e
         finally:
             if driver:
@@ -63,13 +73,18 @@ class User:
             """
             params = {"username": username}
 
+            logger.info(f"<user> Searching for user in Neo4j DB: {params}")
+
             result, summary, keys = driver.execute_query(query, params)
 
             if result:
                 user_data = dict(result[0]['u'])
+                logger.info(f"<user> User found in Neo4j DB: {user_data}")
                 return user_data
+            logger.info(f"<user> User not found in Neo4j DB: {username}")
             return None
         except Exception as e:
+            logger.error(f"<user> Error searching for user in Neo4j DB: {e}")
             raise e
         finally:
             if driver:
@@ -116,12 +131,17 @@ class User:
             RETURN u
             """
 
+            logger.info(f"<user> Updating user in Neo4j DB: {params}")
+
             result, summary, keys = driver.execute_query(query, params)
             
             if result:
-                return dict(result[0]['u'])
+                user_data = dict(result[0]['u'])
+                logger.info(f"<user> User updated in Neo4j DB: {user_data}")
+                return user_data
             return None
         except Exception as e:
+            logger.error(f"<user> Error updating user in Neo4j DB: {e}")
             raise e
         finally:
             if driver:
@@ -140,10 +160,18 @@ class User:
             """
             params = {"username": username}
 
+            logger.info(f"<user> Deleting user from Neo4j DB: {params}")
+
             result, summary, keys = driver.execute_query(query, params)
             
-            return summary.counters.nodes_deleted > 0
+            success = summary.counters.nodes_deleted > 0
+            if success:
+                logger.info(f"<user> User deleted from Neo4j DB: {username}")
+            else:
+                logger.info(f"<user> User not found for deletion in Neo4j DB: {username}")
+            return success
         except Exception as e:
+            logger.error(f"<user> Error deleting user from Neo4j DB: {e}")
             raise e
         finally:
             if driver:
@@ -166,9 +194,15 @@ class User:
                 "friend_username": friend_username
             }
 
+            logger.info(f"<user> Adding friend relationship in Neo4j DB: {params}")
+
             result, summary, keys = driver.execute_query(query, params)
-            return summary.counters.relationships_created > 0
+            success = summary.counters.relationships_created > 0
+            if success:
+                logger.info(f"<user> Friend relationship added in Neo4j DB: {user_username} -> {friend_username}")
+            return success
         except Exception as e:
+            logger.error(f"<user> Error adding friend relationship in Neo4j DB: {e}")
             raise e
         finally:
             if driver:
@@ -190,9 +224,17 @@ class User:
                 "friend_username": friend_username
             }
 
+            logger.info(f"<user> Removing friend relationship in Neo4j DB: {params}")
+
             result, summary, keys = driver.execute_query(query, params)
-            return summary.counters.relationships_deleted > 0
+            success = summary.counters.relationships_deleted > 0
+            if success:
+                logger.info(f"<user> Friend relationship removed from Neo4j DB: {user_username} -X-> {friend_username}")
+            else:
+                logger.info(f"<user> Friend relationship not found in Neo4j DB: {user_username} -> {friend_username}")
+            return success
         except Exception as e:
+            logger.error(f"<user> Error removing friend relationship in Neo4j DB: {e}")
             raise e
         finally:
             if driver:
@@ -210,10 +252,15 @@ class User:
             """
             params = {"username": username}
 
+            logger.info(f"<user> Getting friends for user in Neo4j DB: {params}")
+
             result, summary, keys = driver.execute_query(query, params)
             
-            return [record['friend_username'] for record in result]
+            friends = [record['friend_username'] for record in result]
+            logger.info(f"<user> Found {len(friends)} friends for user in Neo4j DB: {username}")
+            return friends
         except Exception as e:
+            logger.error(f"<user> Error getting friends for user in Neo4j DB: {e}")
             raise e
         finally:
             if driver:
@@ -231,10 +278,15 @@ class User:
             ORDER BY u.created_at DESC
             """
 
+            logger.info("<user> Getting all users from Neo4j DB")
+
             result, summary, keys = driver.execute_query(query)
             
-            return [dict(record['u']) for record in result]
+            users = [dict(record['u']) for record in result]
+            logger.info(f"<user> Found {len(users)} users in Neo4j DB")
+            return users
         except Exception as e:
+            logger.error(f"<user> Error getting all users from Neo4j DB: {e}")
             raise e
         finally:
             if driver:

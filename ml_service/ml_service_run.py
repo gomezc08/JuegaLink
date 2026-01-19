@@ -6,7 +6,10 @@ import logging
 
 from knowledge_graph import User
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(message)s'
+)
 logger = logging.getLogger(__name__)
 
 load_dotenv()
@@ -29,7 +32,7 @@ def signup_user():
                 return jsonify({"error": f"Missing required field: {field}"}), 400
         
         # Create user
-        logger.info(f"Creating user: {data['username']}")
+        logger.info(f"<ml_service_run> Creating user: {data['username']}")
         user = user_service.user_signup(
             username=data['username'],
             age=data['age'],
@@ -42,13 +45,13 @@ def signup_user():
         
         # Get the created user to return
         user = user_service.user_login(data['username'])
-        logger.info(f"User created: {user}")
+        logger.info(f"<ml_service_run> User created: {user}")
         return jsonify({
             "message": "User created successfully",
             "user": user
         }), 201
     except Exception as e:
-        logger.error(f"Error creating user: {str(e)}")
+        logger.error(f"<ml_service_run> Error creating user: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
