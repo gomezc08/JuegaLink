@@ -11,8 +11,7 @@ class User:
     def __init__(self):
         self.connector = Connector()
 
-    def user_signup(self, username: str, age: int, city: str, state: str, bio: str, 
-                    email: str = None, phone_no: str = None):
+    def user_signup(self, username: str, email: str, password: str):
         """Create a new user in Neo4j database. Returns user data."""
         driver = None
         try:
@@ -21,12 +20,8 @@ class User:
             query = """
             CREATE(u:User {
                 username: $username, 
-                age: $age, 
-                city: $city, 
-                state: $state, 
-                bio: $bio,
                 email: $email,
-                phone_no: $phone_no,
+                password: $password,
                 created_at: $created_at,
                 updated_at: $updated_at
             })
@@ -35,12 +30,8 @@ class User:
             now = datetime.now().isoformat()
             params = {
                 "username": username,
-                "age": age,
-                "city": city,
-                "state": state,
-                "bio": bio,
                 "email": email,
-                "phone_no": phone_no,
+                "password": password,
                 "created_at": now,
                 "updated_at": now
             }
@@ -61,30 +52,34 @@ class User:
             if driver:
                 driver.close()
 
-    def user_login(self, username: str):
+    def user_login(self, username: str, password: str):
         """Find a user by username. Returns user data dict or None."""
         driver = None
         try:
             driver = self.connector.connect()
 
+            # check if user exists and password is correct
             query = """
-            MATCH(u:User {username: $username})
+            MATCH(u:User {username: $username, password: $password})
             RETURN u
             """
-            params = {"username": username}
+            params = {"username": username, "password": password}
 
-            logger.info(f"<user> Searching for user in Neo4j DB: {params}")
+            logger.info(f"<user> Searching for user in Neo4j DB and checking password: {params}")
 
             result, summary, keys = driver.execute_query(query, params)
 
             if result:
-                user_data = dict(result[0]['u'])
-                logger.info(f"<user> User found in Neo4j DB: {user_data}")
-                return user_data
-            logger.info(f"<user> User not found in Neo4j DB: {username}")
-            return None
+                # check if password is correct
+                if result[0]['u']['password'] == password:
+                    user_data = dict(result[0]['u'])
+                    logger.info(f"<user> User found in Neo4j DB and password is correct: {user_data}")
+                    return user_data
+                else:
+                    logger.info(f"<user> User found in Neo4j DB but password is incorrect: {username}")
+                    return None
         except Exception as e:
-            logger.error(f"<user> Error searching for user in Neo4j DB: {e}")
+            logger.error(f"<user> Error searching for user in Neo4j DB and checking password: {e}")
             raise e
         finally:
             if driver:
