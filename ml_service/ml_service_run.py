@@ -35,14 +35,17 @@ def signup_user():
         logger.info(f"<ml_service_run> Creating user: {data['username']}")
         user = user_service.user_signup(
             username=data['username'],
-            email=data.get('email'),
+            email=data['email'],
             password=data['password']
         )
         
         logger.info(f"<ml_service_run> User created: {user}")
         return jsonify({
             "message": "User created successfully",
-            "user": user
+            "user": {
+                "username" : user['username'],
+                "email" : user['email']
+            }
         }), 201
     except Exception as e:
         logger.error(f"<ml_service_run> Error creating user: {str(e)}")
@@ -67,11 +70,17 @@ def login_user():
             password=data['password']
         )
         
-        logger.info(f"<ml_service_run> User logged in: {user}")
-        return jsonify({
-            "message": "User logged in successfully",
-            "user": user
-        }), 201
+        if user:
+            logger.info(f"<ml_service_run> User logged in: {user}")
+            return jsonify({
+                "message": "User logged in successfully",
+                "user": user
+            }), 200
+        else:
+            logger.info(f"<ml_service_run> Login failed for user: {data['username']}")
+            return jsonify({
+                "error": "Invalid username or password"
+            }), 401
     except Exception as e:
         logger.error(f"<ml_service_run> Error logging in user: {str(e)}")
         return jsonify({"error": str(e)}), 500
