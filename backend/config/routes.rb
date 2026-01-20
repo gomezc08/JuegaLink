@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  devise_for :users
   get "fyp/index"
   root "home#index"
   get "home/login"
