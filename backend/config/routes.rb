@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  get "fyp/index"
   root "home#index"
   get "home/login"
   post "home/login", to: "home#login_post"
