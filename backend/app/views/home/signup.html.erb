@@ -6,15 +6,21 @@
           <h2>Join Juega Link</h2>
         </div>
         <div class="login-card-body">
-          <%= form_with url: "#", method: :post, local: true, class: "mb-3" do |form| %>
+          <% if flash[:alert] %>
+            <div class="alert alert-danger" role="alert">
+              <%= flash[:alert] %>
+            </div>
+          <% end %>
+
+          <%= form_with url: home_signup_path, method: :post, local: true, class: "mb-3" do |form| %>
             <div class="mb-4">
               <%= form.label :username, "Username", class: "form-label" %>
-              <%= form.text_field :username, class: "form-control", placeholder: "Choose a username", required: true %>
+              <%= form.text_field :username, class: "form-control", placeholder: "Choose a username", required: true, value: params[:username] %>
             </div>
             
             <div class="mb-4">
               <%= form.label :email, "Email", class: "form-label" %>
-              <%= form.email_field :email, class: "form-control", placeholder: "Enter your email", required: true %>
+              <%= form.email_field :email, class: "form-control", placeholder: "Enter your email", required: true, value: params[:email] %>
             </div>
             
             <div class="mb-4">

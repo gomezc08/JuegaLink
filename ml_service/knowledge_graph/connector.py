@@ -1,6 +1,13 @@
 from dotenv import load_dotenv
 import os
 from neo4j import GraphDatabase
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(message)s'
+)
+logger = logging.getLogger(__name__)
 
 class Connector:
     def __init__(self):
@@ -15,8 +22,8 @@ class Connector:
             auth = (self.user, self.password)
             driver = GraphDatabase.driver(self.url, auth=auth)
             driver.verify_connectivity()
-            print("Connection established.")
+            logger.info("<connector> Neo4j DB connection established.")
             return driver
         except Exception as e:
-            print(f"Connection failed: {e}")
+            logger.error(f"<connector> Neo4j DB connection failed: {e}")
             raise e
