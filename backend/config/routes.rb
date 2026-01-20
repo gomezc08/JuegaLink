@@ -1,5 +1,6 @@
 Rails.application.routes.draw do
   devise_for :users
+  post "fyp/login", to: "fyp#login"
   get "fyp/index"
   root "home#index"
   get "home/login"
