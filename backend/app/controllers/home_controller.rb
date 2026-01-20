@@ -46,4 +46,9 @@ class HomeController < ApplicationController
       render :signup, status: :unprocessable_entity
     end
   end
+
+  def logout
+    session[:user] = nil
+    redirect_to root_path, notice: "You have been logged out successfully."
+  end
 end
