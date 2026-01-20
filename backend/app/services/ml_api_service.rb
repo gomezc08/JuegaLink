@@ -33,6 +33,28 @@ class MlApiService
       handle_response(response)
     end
 
+    def update_user(username:, **params)
+      uri = URI("#{BASE_URL}/users/update")
+      http = Net::HTTP.new(uri.host, uri.port)
+      request = Net::HTTP::Put.new(uri.path, 'Content-Type' => 'application/json')
+      request.body = {
+        username: username,
+        **params
+      }.to_json
+
+      response = http.request(request)
+      handle_response(response)
+    end
+
+    def get_friends(username:)
+      uri = URI("#{BASE_URL}/users/#{username}/friends")
+      http = Net::HTTP.new(uri.host, uri.port)
+      request = Net::HTTP::Get.new(uri.path, 'Content-Type' => 'application/json')
+
+      response = http.request(request)
+      handle_response(response)
+    end
+
     private
 
     def handle_response(response)
