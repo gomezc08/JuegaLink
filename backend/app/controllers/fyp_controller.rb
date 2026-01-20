@@ -13,7 +13,7 @@ class FypController < ApplicationController
       redirect_to fyp_index_path, notice: "Welcome back, #{result['user']['username']}!"
     else
       flash.now[:alert] = result[:error] || "Invalid username or password"
-      render :index, status: :unprocessable_entity
+      redirect_to home_login_path, alert: result[:error] || "Invalid username or password"
     end
   end
 end
