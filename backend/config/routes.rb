@@ -2,6 +2,8 @@ Rails.application.routes.draw do
   devise_for :users
   post "fyp/login", to: "fyp#login"
   get "fyp/index"
+  get "fyp/profile"
+  get "fyp/search"
   root "home#index"
   get "home/login"
   post "home/login", to: "home#login_post"

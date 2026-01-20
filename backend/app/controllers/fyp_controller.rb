@@ -2,6 +2,12 @@ class FypController < ApplicationController
   def index
   end
 
+  def profile
+  end
+
+  def search
+  end
+
   def login
     result = MlApiService.login(
       username: params[:username],
