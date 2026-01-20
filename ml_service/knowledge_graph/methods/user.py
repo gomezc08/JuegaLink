@@ -286,3 +286,32 @@ class User:
         finally:
             if driver:
                 driver.close()
+
+    def search_users(self, query: str):
+        """Search for users by username (partial match). Returns list of user dicts."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+
+            search_query = """
+            MATCH(u:User)
+            WHERE toLower(u.username) CONTAINS toLower($query)
+            RETURN u
+            ORDER BY u.username
+            LIMIT 50
+            """
+            params = {"query": query}
+
+            logger.info(f"<user> Searching for users in Neo4j DB: {params}")
+
+            result, summary, keys = driver.execute_query(search_query, params)
+            
+            users = [dict(record['u']) for record in result]
+            logger.info(f"<user> Found {len(users)} users matching search in Neo4j DB")
+            return users
+        except Exception as e:
+            logger.error(f"<user> Error searching for users in Neo4j DB: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()

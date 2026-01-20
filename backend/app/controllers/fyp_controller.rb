@@ -44,6 +44,23 @@ class FypController < ApplicationController
   end
 
   def search
+    @query = params[:q] || ''
+    @filter = params[:filter] || 'user'
+    @results = []
+    
+    if @query.present?
+      if @filter == 'user'
+        result = MlApiService.search_users(query: @query)
+        @results = result['users'] || []
+        @count = result['count'] || 0
+      elsif @filter == 'field'
+        result = MlApiService.search_fields(query: @query)
+        @results = result['fields'] || []
+        @count = result['count'] || 0
+      end
+    else
+      @count = 0
+    end
   end
 
   def login

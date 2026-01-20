@@ -55,6 +55,26 @@ class MlApiService
       handle_response(response)
     end
 
+    def search_users(query:)
+      uri = URI("#{BASE_URL}/search/users")
+      uri.query = URI.encode_www_form(q: query)
+      http = Net::HTTP.new(uri.host, uri.port)
+      request = Net::HTTP::Get.new(uri.path + '?' + uri.query, 'Content-Type' => 'application/json')
+
+      response = http.request(request)
+      handle_response(response)
+    end
+
+    def search_fields(query:)
+      uri = URI("#{BASE_URL}/search/fields")
+      uri.query = URI.encode_www_form(q: query)
+      http = Net::HTTP.new(uri.host, uri.port)
+      request = Net::HTTP::Get.new(uri.path + '?' + uri.query, 'Content-Type' => 'application/json')
+
+      response = http.request(request)
+      handle_response(response)
+    end
+
     private
 
     def handle_response(response)

@@ -105,22 +105,58 @@ class Field:
                 driver.close()
 
     def get_all_fields(self):
-        # connect to db.
-        driver = self.connector.connect()
+        """Get all fields. Returns list of field dicts."""
+        driver = None
+        try:
+            driver = self.connector.connect()
 
-        # create query.
-        query = """
-        MATCH(f:Field)
-        RETURN f
-        ORDER BY f.field_name
-        """
+            query = """
+            MATCH(f:Field)
+            RETURN f
+            ORDER BY f.field_name
+            """
 
-        result, summary, keys = driver.execute_query(query)
+            result, summary, keys = driver.execute_query(query)
+            
+            fields = [dict(record['f']) for record in result]
+            logger.info(f"<field> Found {len(fields)} fields in Neo4j DB")
+            return fields
+        except Exception as e:
+            logger.error(f"<field> Error getting all fields from Neo4j DB: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
 
-        # print result.
-        print(f"Found {len(result)} fields:")
-        for record in result:
-            print(f"  - {record['f']['field_name']} at {record['f']['address']}")
+    def search_fields(self, query: str):
+        """Search for fields by name or address (partial match). Returns list of field dicts."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+
+            search_query = """
+            MATCH(f:Field)
+            WHERE toLower(f.field_name) CONTAINS toLower($query) 
+               OR toLower(f.address) CONTAINS toLower($query)
+            RETURN f
+            ORDER BY f.field_name
+            LIMIT 50
+            """
+            params = {"query": query}
+
+            logger.info(f"<field> Searching for fields in Neo4j DB: {params}")
+
+            result, summary, keys = driver.execute_query(search_query, params)
+            
+            fields = [dict(record['f']) for record in result]
+            logger.info(f"<field> Found {len(fields)} fields matching search in Neo4j DB")
+            return fields
+        except Exception as e:
+            logger.error(f"<field> Error searching for fields in Neo4j DB: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
 
     def delete_field(self, field_name: str, address: str):
         """Delete a field from Neo4j. Returns True if successful."""
