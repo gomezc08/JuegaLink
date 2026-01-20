@@ -24,9 +24,10 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
+  <body class="d-flex flex-column min-vh-100">
     <%= render 'home/header' %>
-    <div class="container">
+
+    <div class="container flex-grow-1 <%= 'pb-5' unless user_signed_in? %>">
       <% if flash[:notice] %>
         <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
           <%= flash[:notice] %>
@@ -42,6 +43,6 @@
       <% end %>
 
       <%= yield %>
-    </div>
+    </div>    
   </body>
 </html>
