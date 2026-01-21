@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from flask import Flask, request, jsonify
+from flask import Blueprint, request, jsonify
 from flask_cors import CORS
 import os
 import logging
@@ -16,12 +16,11 @@ load_dotenv()
 
 sport_service = Sport()
 
-app = Flask(__name__)
-CORS(app)
+sport_bp = Blueprint('sports', __name__)
 
 # Sport routes.
 # Create sport route.
-@app.route('/sports/create', methods=['POST'])
+@sport_bp.route('/sports/create', methods=['POST'])
 def create_sport():
     """Create a new sport"""
     try:
@@ -52,7 +51,7 @@ def create_sport():
         return jsonify({"error": str(e)}), 500
 
 # Get sport route.
-@app.route('/sports/get', methods=['POST'])
+@sport_bp.route('/sports/get', methods=['POST'])
 def get_sport():
     """Get a sport by name"""
     try:
@@ -81,7 +80,7 @@ def get_sport():
         return jsonify({"error": str(e)}), 500
 
 # Get all sports route.
-@app.route('/sports/all', methods=['GET'])
+@sport_bp.route('/sports/all', methods=['GET'])
 def get_all_sports():
     """Get all sports"""
     try:
@@ -99,7 +98,7 @@ def get_all_sports():
         return jsonify({"error": str(e)}), 500
 
 # Update sport route.
-@app.route('/sports/update', methods=['PUT'])
+@sport_bp.route('/sports/update', methods=['PUT'])
 def update_sport():
     """Update a sport"""
     try:
@@ -133,7 +132,7 @@ def update_sport():
         return jsonify({"error": str(e)}), 500
 
 # Delete sport route.
-@app.route('/sports/delete', methods=['DELETE'])
+@sport_bp.route('/sports/delete', methods=['DELETE'])
 def delete_sport():
     """Delete a sport"""
     try:
@@ -160,5 +159,10 @@ def delete_sport():
         logger.error(f"<ml_service_run> Error deleting sport: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+# For standalone running
 if __name__ == '__main__':
+    from flask import Flask
+    app = Flask(__name__)
+    CORS(app)
+    app.register_blueprint(sport_bp)
     app.run(debug=True)

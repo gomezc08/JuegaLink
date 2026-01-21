@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from flask import Flask, request, jsonify
+from flask import Blueprint, request, jsonify
 from flask_cors import CORS
 import os
 import logging
@@ -16,12 +16,11 @@ load_dotenv()
 
 event_service = Event()
 
-app = Flask(__name__)
-CORS(app)
+event_bp = Blueprint('events', __name__)
 
 # Event routes.
 # Create event route.
-@app.route('/events/create', methods=['POST'])
+@event_bp.route('/events/create', methods=['POST'])
 def create_event():
     """Create a new event"""
     try:
@@ -241,5 +240,10 @@ def for_sport():
         logger.error(f"<ml_service_run> Error creating for sport relationship: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+# For standalone running
 if __name__ == '__main__':
+    from flask import Flask
+    app = Flask(__name__)
+    CORS(app)
+    app.register_blueprint(event_bp)
     app.run(debug=True)

@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from flask import Flask, request, jsonify
+from flask import Blueprint, request, jsonify
 from flask_cors import CORS
 import os
 import logging
@@ -16,12 +16,11 @@ load_dotenv()
 
 user_service = User()
 
-app = Flask(__name__)
-CORS(app)
+user_bp = Blueprint('users', __name__)
 
 # User routes.
 # User signup route.
-@app.route('/users/signup', methods=['POST'])
+@user_bp.route('/users/signup', methods=['POST'])
 def signup_user():
     """Create a new user"""
     try:
@@ -54,7 +53,7 @@ def signup_user():
         return jsonify({"error": str(e)}), 500
 
 # User login/get route.
-@app.route('/users/login', methods=['POST'])
+@user_bp.route('/users/login', methods=['POST'])
 def login_user():
     """Login a user"""
     try:
@@ -126,7 +125,7 @@ def update_user():
         return jsonify({"error": str(e)}), 500
 
 # User delete route.
-@app.route('/users/delete', methods=['DELETE'])
+@user_bp.route('/users/delete', methods=['DELETE'])
 def delete_user():
     """Delete a user"""
     try:
@@ -187,7 +186,7 @@ def follow_user():
         return jsonify({"error": str(e)}), 500
 
 # User plays sport route.
-@app.route('/users/play-sport', methods=['POST'])
+@user_bp.route('/users/play-sport', methods=['POST'])
 def play_sport():
     """Create a PLAYS relationship between user and sport"""
     try:
@@ -295,7 +294,7 @@ def organize_event():
         return jsonify({"error": str(e)}), 500
 
 # User attending event route.
-@app.route('/users/attend-event', methods=['POST'])
+@user_bp.route('/users/attend-event', methods=['POST'])
 def attend_event():
     """Create an ATTENDING relationship between user and event"""
     try:
@@ -411,5 +410,10 @@ def favorite_field():
         logger.error(f"<ml_service_run> Error creating favorite field relationship: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+# For standalone running
 if __name__ == '__main__':
+    from flask import Flask
+    app = Flask(__name__)
+    CORS(app)
+    app.register_blueprint(user_bp)
     app.run(debug=True)

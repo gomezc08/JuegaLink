@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from flask import Flask, request, jsonify
+from flask import Blueprint, request, jsonify
 from flask_cors import CORS
 import os
 import logging
@@ -16,12 +16,11 @@ load_dotenv()
 
 field_service = Field()
 
-app = Flask(__name__)
-CORS(app)
+field_bp = Blueprint('fields', __name__)
 
 # Field routes.
 # Create field route.
-@app.route('/fields/create', methods=['POST'])
+@field_bp.route('/fields/create', methods=['POST'])
 def create_field():
     """Create a new field"""
     try:
@@ -229,5 +228,10 @@ def supports_sport():
         logger.error(f"<ml_service_run> Error creating supports sport relationship: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+# For standalone running
 if __name__ == '__main__':
+    from flask import Flask
+    app = Flask(__name__)
+    CORS(app)
+    app.register_blueprint(field_bp)
     app.run(debug=True)
