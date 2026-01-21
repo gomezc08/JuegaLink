@@ -287,30 +287,231 @@ class User:
             if driver:
                 driver.close()
 
-    def search_users(self, query: str):
-        """Search for users by username (partial match). Returns list of user dicts."""
+    def follow_user(self, user_username: str, follow_username: str):
+        """Create a FOLLOWS relationship between users. Returns True if successful."""
         driver = None
         try:
             driver = self.connector.connect()
 
-            search_query = """
-            MATCH(u:User)
-            WHERE toLower(u.username) CONTAINS toLower($query)
-            RETURN u
-            ORDER BY u.username
-            LIMIT 50
+            query = """
+            MATCH(a:User {username: $user_username})
+            MATCH(b:User {username: $follow_username})
+            CREATE(a)-[:FOLLOWS]->(b)
+            RETURN a, b
             """
-            params = {"query": query}
+            params = {
+                "user_username": user_username,
+                "follow_username": follow_username
+            }
 
-            logger.info(f"<user> Searching for users in Neo4j DB: {params}")
+            logger.info(f"<user> Adding FOLLOWS relationship in Neo4j DB: {params}")
 
-            result, summary, keys = driver.execute_query(search_query, params)
-            
-            users = [dict(record['u']) for record in result]
-            logger.info(f"<user> Found {len(users)} users matching search in Neo4j DB")
-            return users
+            result, summary, keys = driver.execute_query(query, params)
+            success = summary.counters.relationships_created > 0
+            if success:
+                logger.info(f"<user> FOLLOWS relationship added in Neo4j DB: {user_username} -> {follow_username}")
+            return success
         except Exception as e:
-            logger.error(f"<user> Error searching for users in Neo4j DB: {e}")
+            logger.error(f"<user> Error adding FOLLOWS relationship in Neo4j DB: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
+
+    def play_sport(self, username: str, sport_name: str, skill_level: str, years_experience: int):
+        """Create a PLAYS relationship between user and sport. Returns True if successful."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+
+            query = """
+            MATCH(u:User {username: $username})
+            MATCH(s:Sport {sport_name: $sport_name})
+            CREATE(u)-[:PLAYS {
+                skill_level: $skill_level,
+                years_experience: $years_experience,
+                added_at: $added_at
+            }]->(s)
+            RETURN u, s
+            """
+            params = {
+                "username": username,
+                "sport_name": sport_name,
+                "skill_level": skill_level,
+                "years_experience": years_experience,
+                "added_at": datetime.now().isoformat()
+            }
+
+            logger.info(f"<user> Adding PLAYS relationship in Neo4j DB: {params}")
+
+            result, summary, keys = driver.execute_query(query, params)
+            success = summary.counters.relationships_created > 0
+            if success:
+                logger.info(f"<user> PLAYS relationship added in Neo4j DB: {username} -> {sport_name}")
+            return success
+        except Exception as e:
+            logger.error(f"<user> Error adding PLAYS relationship in Neo4j DB: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
+
+    def interested_in_sport(self, username: str, sport_name: str):
+        """Create an INTERESTED_IN relationship between user and sport. Returns True if successful."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+
+            query = """
+            MATCH(u:User {username: $username})
+            MATCH(s:Sport {sport_name: $sport_name})
+            CREATE(u)-[:INTERESTED_IN]->(s)
+            RETURN u, s
+            """
+            params = {
+                "username": username,
+                "sport_name": sport_name
+            }
+
+            logger.info(f"<user> Adding INTERESTED_IN relationship in Neo4j DB: {params}")
+
+            result, summary, keys = driver.execute_query(query, params)
+            success = summary.counters.relationships_created > 0
+            if success:
+                logger.info(f"<user> INTERESTED_IN relationship added in Neo4j DB: {username} -> {sport_name}")
+            return success
+        except Exception as e:
+            logger.error(f"<user> Error adding INTERESTED_IN relationship in Neo4j DB: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
+
+    def organize_event(self, username: str, event_name: str):
+        """Create an ORGANIZES relationship between user and event. Returns True if successful."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+
+            query = """
+            MATCH(u:User {username: $username})
+            MATCH(e:Event {event_name: $event_name})
+            CREATE(u)-[:ORGANIZES]->(e)
+            RETURN u, e
+            """
+            params = {
+                "username": username,
+                "event_name": event_name
+            }
+
+            logger.info(f"<user> Adding ORGANIZES relationship in Neo4j DB: {params}")
+
+            result, summary, keys = driver.execute_query(query, params)
+            success = summary.counters.relationships_created > 0
+            if success:
+                logger.info(f"<user> ORGANIZES relationship added in Neo4j DB: {username} -> {event_name}")
+            return success
+        except Exception as e:
+            logger.error(f"<user> Error adding ORGANIZES relationship in Neo4j DB: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
+
+    def attend_event(self, username: str, event_name: str, status: str):
+        """Create an ATTENDING relationship between user and event. Returns True if successful."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+
+            query = """
+            MATCH(u:User {username: $username})
+            MATCH(e:Event {event_name: $event_name})
+            CREATE(u)-[:ATTENDING {status: $status}]->(e)
+            RETURN u, e
+            """
+            params = {
+                "username": username,
+                "event_name": event_name,
+                "status": status
+            }
+
+            logger.info(f"<user> Adding ATTENDING relationship in Neo4j DB: {params}")
+
+            result, summary, keys = driver.execute_query(query, params)
+            success = summary.counters.relationships_created > 0
+            if success:
+                logger.info(f"<user> ATTENDING relationship added in Neo4j DB: {username} -> {event_name}")
+            return success
+        except Exception as e:
+            logger.error(f"<user> Error adding ATTENDING relationship in Neo4j DB: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
+
+    def invite_to_event(self, username: str, event_name: str, invited_by: str, status: str = "pending"):
+        """Create an INVITED_TO relationship between user and event. Returns True if successful."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+
+            query = """
+            MATCH(u:User {username: $username})
+            MATCH(e:Event {event_name: $event_name})
+            CREATE(u)-[:INVITED_TO {
+                invited_by: $invited_by,
+                status: $status
+            }]->(e)
+            RETURN u, e
+            """
+            params = {
+                "username": username,
+                "event_name": event_name,
+                "invited_by": invited_by,
+                "status": status
+            }
+
+            logger.info(f"<user> Adding INVITED_TO relationship in Neo4j DB: {params}")
+
+            result, summary, keys = driver.execute_query(query, params)
+            success = summary.counters.relationships_created > 0
+            if success:
+                logger.info(f"<user> INVITED_TO relationship added in Neo4j DB: {username} -> {event_name}")
+            return success
+        except Exception as e:
+            logger.error(f"<user> Error adding INVITED_TO relationship in Neo4j DB: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
+
+    def favorite_field(self, username: str, field_name: str):
+        """Create a FAVORITED relationship between user and field. Returns True if successful."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+
+            query = """
+            MATCH(u:User {username: $username})
+            MATCH(f:Field {field_name: $field_name})
+            CREATE(u)-[:FAVORITED]->(f)
+            RETURN u, f
+            """
+            params = {
+                "username": username,
+                "field_name": field_name
+            }
+
+            logger.info(f"<user> Adding FAVORITED relationship in Neo4j DB: {params}")
+
+            result, summary, keys = driver.execute_query(query, params)
+            success = summary.counters.relationships_created > 0
+            if success:
+                logger.info(f"<user> FAVORITED relationship added in Neo4j DB: {username} -> {field_name}")
+            return success
+        except Exception as e:
+            logger.error(f"<user> Error adding FAVORITED relationship in Neo4j DB: {e}")
             raise e
         finally:
             if driver:

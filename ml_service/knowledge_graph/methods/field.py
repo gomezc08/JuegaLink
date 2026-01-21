@@ -116,8 +116,10 @@ class Field:
             ORDER BY f.field_name
             """
 
+            logger.info("<field> Getting all fields from Neo4j DB")
+
             result, summary, keys = driver.execute_query(query)
-            
+
             fields = [dict(record['f']) for record in result]
             logger.info(f"<field> Found {len(fields)} fields in Neo4j DB")
             return fields
@@ -128,31 +130,42 @@ class Field:
             if driver:
                 driver.close()
 
-    def search_fields(self, query: str):
-        """Search for fields by name or address (partial match). Returns list of field dicts."""
+    def update_field(self, field_name: str, address: str = None, new_field_name: str = None):
+        """Update field information in Neo4j. Returns updated field data."""
         driver = None
         try:
             driver = self.connector.connect()
 
-            search_query = """
-            MATCH(f:Field)
-            WHERE toLower(f.field_name) CONTAINS toLower($query) 
-               OR toLower(f.address) CONTAINS toLower($query)
-            RETURN f
-            ORDER BY f.field_name
-            LIMIT 50
-            """
-            params = {"query": query}
-
-            logger.info(f"<field> Searching for fields in Neo4j DB: {params}")
-
-            result, summary, keys = driver.execute_query(search_query, params)
+            updates = []
+            params = {"field_name": field_name}
             
-            fields = [dict(record['f']) for record in result]
-            logger.info(f"<field> Found {len(fields)} fields matching search in Neo4j DB")
-            return fields
+            if new_field_name is not None:
+                updates.append("f.field_name = $new_field_name")
+                params["new_field_name"] = new_field_name
+            if address is not None:
+                updates.append("f.address = $address")
+                params["address"] = address
+            
+            if len(updates) == 0:
+                return None
+
+            query = f"""
+            MATCH(f:Field {{field_name: $field_name}})
+            SET {', '.join(updates)}
+            RETURN f
+            """
+
+            logger.info(f"<field> Updating field in Neo4j DB: {params}")
+
+            result, summary, keys = driver.execute_query(query, params)
+            
+            if result:
+                field_data = dict(result[0]['f'])
+                logger.info(f"<field> Field updated in Neo4j DB: {field_data}")
+                return field_data
+            return None
         except Exception as e:
-            logger.error(f"<field> Error searching for fields in Neo4j DB: {e}")
+            logger.error(f"<field> Error updating field in Neo4j DB: {e}")
             raise e
         finally:
             if driver:
@@ -186,6 +199,37 @@ class Field:
             return success
         except Exception as e:
             logger.error(f"<field> Error deleting field from Neo4j DB: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
+
+    def supports_sport(self, field_name: str, sport_name: str):
+        """Create a SUPPORTS relationship between field and sport. Returns True if successful."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+
+            query = """
+            MATCH(f:Field {field_name: $field_name})
+            MATCH(s:Sport {sport_name: $sport_name})
+            CREATE(f)-[:SUPPORTS]->(s)
+            RETURN f, s
+            """
+            params = {
+                "field_name": field_name,
+                "sport_name": sport_name
+            }
+
+            logger.info(f"<field> Adding SUPPORTS relationship in Neo4j DB: {params}")
+
+            result, summary, keys = driver.execute_query(query, params)
+            success = summary.counters.relationships_created > 0
+            if success:
+                logger.info(f"<field> SUPPORTS relationship added in Neo4j DB: {field_name} -> {sport_name}")
+            return success
+        except Exception as e:
+            logger.error(f"<field> Error adding SUPPORTS relationship in Neo4j DB: {e}")
             raise e
         finally:
             if driver:
