@@ -1,6 +1,6 @@
 from .user import User
-from .skill_level import SkillLevel
 from .sport import Sport
 from .field import Field
+from .event import Event
 
-__all__ = ["User", "SkillLevel", "Sport", "Field"]
+__all__ = ["User", "Sport", "Field", "Event"]
