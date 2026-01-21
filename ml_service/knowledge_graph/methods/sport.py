@@ -98,6 +98,38 @@ class Sport:
             if driver:
                 driver.close()
 
+    def update_sport(self, old_sport_name: str, new_sport_name: str):
+        """Update sport name in Neo4j. Returns updated sport data."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+
+            query = """
+            MATCH(s:Sport {sport_name: $old_sport_name})
+            SET s.sport_name = $new_sport_name
+            RETURN s
+            """
+            params = {
+                "old_sport_name": old_sport_name,
+                "new_sport_name": new_sport_name
+            }
+
+            logger.info(f"<sport> Updating sport in Neo4j DB: {params}")
+
+            result, summary, keys = driver.execute_query(query, params)
+            
+            if result:
+                sport_data = dict(result[0]['s'])
+                logger.info(f"<sport> Sport updated in Neo4j DB: {sport_data}")
+                return sport_data
+            return None
+        except Exception as e:
+            logger.error(f"<sport> Error updating sport in Neo4j DB: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
+
     def delete_sport(self, sport_name: str):
         """Delete a sport from Neo4j. Returns True if successful."""
         driver = None
