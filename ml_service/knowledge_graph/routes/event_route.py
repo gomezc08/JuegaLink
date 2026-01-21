@@ -4,7 +4,7 @@ from flask_cors import CORS
 import os
 import logging
 
-from knowledge_graph import Event
+from knowledge_graph.methods import Event
 
 logging.basicConfig(
     level=logging.INFO,
@@ -57,7 +57,7 @@ def create_event():
         return jsonify({"error": str(e)}), 500
 
 # Get event route.
-@app.route('/events/get', methods=['POST'])
+@event_bp.route('/events/get', methods=['POST'])
 def get_event():
     """Get an event by name"""
     try:
@@ -86,7 +86,7 @@ def get_event():
         return jsonify({"error": str(e)}), 500
 
 # Get all events route.
-@app.route('/events/all', methods=['GET'])
+@event_bp.route('/events/all', methods=['GET'])
 def get_all_events():
     """Get all events"""
     try:
@@ -104,7 +104,7 @@ def get_all_events():
         return jsonify({"error": str(e)}), 500
 
 # Update event route.
-@app.route('/events/update', methods=['PUT'])
+@event_bp.route('/events/update', methods=['PUT'])
 def update_event():
     """Update an event"""
     try:
@@ -139,7 +139,7 @@ def update_event():
         return jsonify({"error": str(e)}), 500
 
 # Delete event route.
-@app.route('/events/delete', methods=['DELETE'])
+@event_bp.route('/events/delete', methods=['DELETE'])
 def delete_event():
     """Delete an event"""
     try:
@@ -167,7 +167,7 @@ def delete_event():
         return jsonify({"error": str(e)}), 500
 
 # Event hosted by field route.
-@app.route('/events/hosted-at-field', methods=['POST'])
+@event_bp.route('/events/hosted-at-field', methods=['POST'])
 def hosted_at_field():
     """Create a HOSTED_AT relationship between event and field"""
     try:
@@ -200,7 +200,7 @@ def hosted_at_field():
         return jsonify({"error": str(e)}), 500
 
 # Event for sport route.
-@app.route('/events/for-sport', methods=['POST'])
+@event_bp.route('/events/for-sport', methods=['POST'])
 def for_sport():
     """Create a FOR_SPORT relationship between event and sport"""
     try:
@@ -239,11 +239,3 @@ def for_sport():
     except Exception as e:
         logger.error(f"<ml_service_run> Error creating for sport relationship: {str(e)}")
         return jsonify({"error": str(e)}), 500
-
-# For standalone running
-if __name__ == '__main__':
-    from flask import Flask
-    app = Flask(__name__)
-    CORS(app)
-    app.register_blueprint(event_bp)
-    app.run(debug=True)

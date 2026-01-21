@@ -4,7 +4,7 @@ from flask_cors import CORS
 import os
 import logging
 
-from knowledge_graph import User
+from knowledge_graph.methods import User
 
 logging.basicConfig(
     level=logging.INFO,
@@ -88,7 +88,7 @@ def login_user():
         return jsonify({"error": str(e)}), 500
 
 # User update route.
-@app.route('/users/update', methods=['PUT'])
+@user_bp.route('/users/update', methods=['PUT'])
 def update_user():
     """Update user information"""
     try:
@@ -153,7 +153,7 @@ def delete_user():
         return jsonify({"error": str(e)}), 500
 
 # User follows user route.
-@app.route('/users/follow', methods=['POST'])
+@user_bp.route('/users/follow', methods=['POST'])
 def follow_user():
     """Create a FOLLOWS relationship between users"""
     try:
@@ -228,7 +228,7 @@ def play_sport():
         return jsonify({"error": str(e)}), 500
 
 # User interested in sport route.
-@app.route('/users/interested-in-sport', methods=['POST'])
+@user_bp.route('/users/interested-in-sport', methods=['POST'])
 def interested_in_sport():
     """Create an INTERESTED_IN relationship between user and sport"""
     try:
@@ -261,7 +261,7 @@ def interested_in_sport():
         return jsonify({"error": str(e)}), 500
 
 # User organizes event route.
-@app.route('/users/organize-event', methods=['POST'])
+@user_bp.route('/users/organize-event', methods=['POST'])
 def organize_event():
     """Create an ORGANIZES relationship between user and event"""
     try:
@@ -335,7 +335,7 @@ def attend_event():
         return jsonify({"error": str(e)}), 500
 
 # User invited to event route.
-@app.route('/users/invite-to-event', methods=['POST'])
+@user_bp.route('/users/invite-to-event', methods=['POST'])
 def invite_to_event():
     """Create an INVITED_TO relationship between user and event"""
     try:
@@ -378,7 +378,7 @@ def invite_to_event():
         return jsonify({"error": str(e)}), 500
 
 # User favorited field route.
-@app.route('/users/favorite-field', methods=['POST'])
+@user_bp.route('/users/favorite-field', methods=['POST'])
 def favorite_field():
     """Create a FAVORITED relationship between user and field"""
     try:

@@ -1,4 +1,4 @@
 from .connector import Connector
-from .methods import User, SkillLevel, Sport, Field
+from .methods import User, Sport, Field
 
-__all__ = ["Connector", "User", "SkillLevel", "Sport", "Field"]
+__all__ = ["Connector", "User", "Sport", "Field"]

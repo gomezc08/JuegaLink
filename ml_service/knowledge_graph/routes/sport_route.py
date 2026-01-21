@@ -4,7 +4,7 @@ from flask_cors import CORS
 import os
 import logging
 
-from knowledge_graph import Sport
+from knowledge_graph.methods import Sport
 
 logging.basicConfig(
     level=logging.INFO,
@@ -158,11 +158,3 @@ def delete_sport():
     except Exception as e:
         logger.error(f"<ml_service_run> Error deleting sport: {str(e)}")
         return jsonify({"error": str(e)}), 500
-
-# For standalone running
-if __name__ == '__main__':
-    from flask import Flask
-    app = Flask(__name__)
-    CORS(app)
-    app.register_blueprint(sport_bp)
-    app.run(debug=True)

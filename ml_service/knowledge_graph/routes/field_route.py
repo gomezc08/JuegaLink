@@ -4,7 +4,7 @@ from flask_cors import CORS
 import os
 import logging
 
-from knowledge_graph import Field
+from knowledge_graph.methods import Field
 
 logging.basicConfig(
     level=logging.INFO,
@@ -54,7 +54,7 @@ def create_field():
         return jsonify({"error": str(e)}), 500
 
 # Get field route.
-@app.route('/fields/get', methods=['POST'])
+@field_bp.route('/fields/get', methods=['POST'])
 def get_field():
     """Get a field by name"""
     try:
@@ -83,7 +83,7 @@ def get_field():
         return jsonify({"error": str(e)}), 500
 
 # Get field by address route.
-@app.route('/fields/get-by-address', methods=['POST'])
+@field_bp.route('/fields/get-by-address', methods=['POST'])
 def get_field_by_address():
     """Get a field by address"""
     try:
@@ -112,7 +112,7 @@ def get_field_by_address():
         return jsonify({"error": str(e)}), 500
 
 # Get all fields route.
-@app.route('/fields/all', methods=['GET'])
+@field_bp.route('/fields/all', methods=['GET'])
 def get_all_fields():
     """Get all fields"""
     try:
@@ -130,7 +130,7 @@ def get_all_fields():
         return jsonify({"error": str(e)}), 500
 
 # Update field route.
-@app.route('/fields/update', methods=['PUT'])
+@field_bp.route('/fields/update', methods=['PUT'])
 def update_field():
     """Update a field"""
     try:
@@ -163,7 +163,7 @@ def update_field():
         return jsonify({"error": str(e)}), 500
 
 # Delete field route.
-@app.route('/fields/delete', methods=['DELETE'])
+@field_bp.route('/fields/delete', methods=['DELETE'])
 def delete_field():
     """Delete a field"""
     try:
@@ -196,7 +196,7 @@ def delete_field():
         return jsonify({"error": str(e)}), 500
 
 # Field supports sport route.
-@app.route('/fields/supports-sport', methods=['POST'])
+@field_bp.route('/fields/supports-sport', methods=['POST'])
 def supports_sport():
     """Create a SUPPORTS relationship between field and sport"""
     try:
@@ -227,11 +227,3 @@ def supports_sport():
     except Exception as e:
         logger.error(f"<ml_service_run> Error creating supports sport relationship: {str(e)}")
         return jsonify({"error": str(e)}), 500
-
-# For standalone running
-if __name__ == '__main__':
-    from flask import Flask
-    app = Flask(__name__)
-    CORS(app)
-    app.register_blueprint(field_bp)
-    app.run(debug=True)
