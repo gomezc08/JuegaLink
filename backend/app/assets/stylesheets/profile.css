@@ -404,6 +404,21 @@
   border-color: #dbdbdb;
 }
 
+.btn-primary.btn-sm {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  font-weight: 600;
+  padding: 6px 16px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.btn-primary.btn-sm:hover {
+  background: linear-gradient(135deg, #5568d3 0%, #653a91 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
 @media (max-width: 768px) {
   .profile-info {
     padding-left: 0;

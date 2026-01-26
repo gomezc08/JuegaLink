@@ -72,6 +72,30 @@ class FypController < ApplicationController
       redirect_to fyp_search_path, alert: result[:error] || "User not found"
     end
   end
+
+  def follow
+    unless current_user && current_user['username']
+      redirect_to home_login_path, alert: "You must be logged in to follow users"
+      return
+    end
+
+    follow_username = params[:follow_username]
+    unless follow_username.present?
+      redirect_to fyp_search_path, alert: "Invalid user to follow"
+      return
+    end
+
+    result = MlApiService.follow_user(
+      username: current_user['username'],
+      follow_username: follow_username
+    )
+
+    if result['message']
+      redirect_to fyp_user_page_path(username: follow_username), notice: "You are now following #{follow_username}!"
+    else
+      redirect_to fyp_user_page_path(username: follow_username), alert: result[:error] || "Failed to follow user"
+    end
+  end
   
   def login
     result = MlApiService.login(
