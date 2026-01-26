@@ -1,0 +1,91 @@
+<div class="search-container">
+  <div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+      <div class="search-header mb-4">
+        <h1 class="search-title">Search</h1>
+        
+        <%= form_with url: fyp_search_path, method: :get, local: true, class: "search-form" do |form| %>
+          <div class="input-group mb-3">
+            <%= form.text_field :q, 
+                class: "form-control search-input", 
+                placeholder: "Search for users or fields...", 
+                value: @query,
+                autofocus: true %>
+            <%= form.hidden_field :filter, value: @filter, id: 'search_filter' %>
+            <%= form.submit "Search", class: "btn btn-primary search-btn" %>
+          </div>
+        <% end %>
+        
+        <div class="filter-buttons">
+          <%= link_to fyp_search_path(q: @query, filter: 'user'), 
+              class: "filter-btn #{'active' if @filter == 'user'}",
+              onclick: "document.getElementById('search_filter').value = 'user'; return true;" do %>
+            <span>👤</span> Users
+          <% end %>
+          <%= link_to fyp_search_path(q: @query, filter: 'field'), 
+              class: "filter-btn #{'active' if @filter == 'field'}",
+              onclick: "document.getElementById('search_filter').value = 'field'; return true;" do %>
+            <span>🏟️</span> Fields
+          <% end %>
+        </div>
+      </div>
+
+      <% if @query.present? %>
+        <div class="search-results">
+          <% if @results.present? %>
+            <div class="results-header mb-3">
+              <h3>Found <%= @count %> <%= @filter == 'user' ? 'user' : 'field' %><%= @count != 1 ? 's' : '' %></h3>
+            </div>
+            
+            <% if @filter == 'user' %>
+              <div class="users-results">
+                <% @results.each do |user| %>
+                  <div class="result-card user-card">
+                    <div class="result-card-body">
+                      <div class="user-avatar">
+                        <%= user['username']&.first&.upcase || 'U' %>
+                      </div>
+                      <div class="result-info">
+                        <h4 class="result-title"><%= user['username'] %></h4>
+                        <% if user['bio'].present? %>
+                          <p class="result-description"><%= truncate(user['bio'], length: 100) %></p>
+                        <% end %>
+                        <% if user['city'].present? || user['state'].present? %>
+                          <p class="result-meta">📍 <%= [user['city'], user['state']].compact.join(', ') %></p>
+                        <% end %>
+                      </div>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            <% else %>
+              <div class="fields-results">
+                <% @results.each do |field| %>
+                  <div class="result-card field-card">
+                    <div class="result-card-body">
+                      <div class="field-icon">🏟️</div>
+                      <div class="result-info">
+                        <h4 class="result-title"><%= field['field_name'] %></h4>
+                        <% if field['address'].present? %>
+                          <p class="result-meta">📍 <%= field['address'] %></p>
+                        <% end %>
+                      </div>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+          <% else %>
+            <div class="no-results">
+              <p class="no-results-text">No <%= @filter == 'user' ? 'users' : 'fields' %> found matching "<%= @query %>"</p>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="search-prompt">
+          <p class="prompt-text">Enter a search term above to find users or fields</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

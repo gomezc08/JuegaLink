@@ -1,0 +1,59 @@
+<div class="edit-profile-container">
+  <% if @user %>
+    <div class="row justify-content-center">
+      <div class="col-md-8 col-lg-6">
+        <div class="card edit-profile-card">
+          <div class="card-header edit-profile-header">
+            <h2 class="mb-0">Edit Profile</h2>
+          </div>
+          <div class="card-body">
+            <%= form_with url: fyp_profile_path, method: :patch, local: true, class: "profile-edit-form" do |form| %>
+              <div class="mb-3">
+                <%= form.label :bio, "Bio", class: "form-label" %>
+                <%= form.text_area :bio, class: "form-control", rows: 3, placeholder: "Tell us about yourself...", value: @user['bio'] || '' %>
+              </div>
+              
+              <div class="mb-3">
+                <%= form.label :email, "Email", class: "form-label" %>
+                <%= form.email_field :email, class: "form-control", placeholder: "your.email@example.com", value: @user['email'] || '' %>
+              </div>
+              
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <%= form.label :age, "Age", class: "form-label" %>
+                  <%= form.number_field :age, class: "form-control", placeholder: "Age", value: @user['age'] || '', min: 1, max: 120 %>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                  <%= form.label :phone_no, "Phone Number", class: "form-label" %>
+                  <%= form.text_field :phone_no, class: "form-control", placeholder: "(123) 456-7890", value: @user['phone_no'] || '' %>
+                </div>
+              </div>
+              
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <%= form.label :city, "City", class: "form-label" %>
+                  <%= form.text_field :city, class: "form-control", placeholder: "City", value: @user['city'] || '' %>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                  <%= form.label :state, "State", class: "form-label" %>
+                  <%= form.text_field :state, class: "form-control", placeholder: "State", value: @user['state'] || '' %>
+                </div>
+              </div>
+              
+              <div class="d-flex gap-2 mt-4">
+                <%= link_to "Cancel", fyp_profile_path, class: "btn btn-secondary flex-fill" %>
+                <%= form.submit "Save Changes", class: "btn btn-primary flex-fill" %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% else %>
+    <div class="alert alert-warning">
+      Please log in to edit your profile.
+    </div>
+  <% end %>
+</div>
