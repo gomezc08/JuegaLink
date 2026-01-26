@@ -287,6 +287,36 @@ class User:
             if driver:
                 driver.close()
 
+    def get_user(self, username: str):
+        """Get a user by username. Returns user data dict or None."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+
+            query = """
+            MATCH(u:User {username: $username})
+            RETURN u
+            """
+            params = {"username": username}
+
+            logger.info(f"<user> Getting user from Neo4j DB: {params}")
+
+            result, summary, keys = driver.execute_query(query, params)
+            
+            if result:
+                user_data = dict(result[0]['u'])
+                logger.info(f"<user> User found in Neo4j DB: {user_data}")
+                return user_data
+            else:
+                logger.info(f"<user> User not found in Neo4j DB: {username}")
+                return None
+        except Exception as e:
+            logger.error(f"<user> Error getting user from Neo4j DB: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
+
     def search_users(self, query: str):
         """Search for users by username (case-insensitive partial match). Returns list of user dicts."""
         driver = None

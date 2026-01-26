@@ -63,6 +63,16 @@ class FypController < ApplicationController
     end
   end
 
+  def user_page
+    @username = params[:username]
+    result = MlApiService.get_user(username: @username)
+    if result['user']
+      @user = result['user']
+    else
+      redirect_to fyp_search_path, alert: result[:error] || "User not found"
+    end
+  end
+  
   def login
     result = MlApiService.login(
       username: params[:username],

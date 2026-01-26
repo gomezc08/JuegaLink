@@ -101,6 +101,23 @@ def get_user_friends(username):
         logger.error(f"<ml_service_run> Error getting friends: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+@app.route('/users/<username>', methods=['GET'])
+def get_user(username):
+    """Get a user by username"""
+    try:
+        user = user_service.get_user(username)
+        if user:
+            return jsonify({
+                "user": user
+            }), 200
+        else:
+            return jsonify({
+                "error": "User not found"
+            }), 404
+    except Exception as e:
+        logger.error(f"<ml_service_run> Error getting user: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/search/users', methods=['GET'])
 def search_users():
     """Search for users by username"""
