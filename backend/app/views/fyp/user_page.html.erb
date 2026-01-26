@@ -16,7 +16,11 @@
               <% if current_user && current_user['username'] != @user['username'] %>
                 <%= form_with url: fyp_follow_path, method: :post, local: true, class: "d-inline" do |form| %>
                   <%= form.hidden_field :follow_username, value: @user['username'] %>
-                  <%= form.submit "Follow", class: "btn btn-primary btn-sm" %>
+                  <% if @is_following %>
+                    <%= form.submit "Unfollow", class: "btn btn-outline-secondary btn-sm" %>
+                  <% else %>
+                    <%= form.submit "Follow", class: "btn btn-primary btn-sm" %>
+                  <% end %>
                 <% end %>
               <% elsif current_user && current_user['username'] == @user['username'] %>
                 <%= link_to "Edit Profile", fyp_edit_profile_path, class: "btn btn-outline-secondary btn-sm" %>

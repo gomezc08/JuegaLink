@@ -287,6 +287,32 @@ class User:
             if driver:
                 driver.close()
 
+    def get_user_followers(self, username: str):
+        """Get all followers of a user. Returns list of follower usernames."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+
+            query = """
+            MATCH(u:User {username: $username})-[:FOLLOWS]->(f:User)
+            RETURN f.username as follower_username
+            """
+            params = {"username": username}
+
+            logger.info(f"<user> Getting followers for user in Neo4j DB: {params}")
+
+            result, summary, keys = driver.execute_query(query, params)
+            
+            followers = [record['follower_username'] for record in result]
+            logger.info(f"<user> Found {len(followers)} followers for user in Neo4j DB: {username}")
+            return followers
+        except Exception as e:
+            logger.error(f"<user> Error getting followers for user in Neo4j DB: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
+    
     def get_user(self, username: str):
         """Get a user by username. Returns user data dict or None."""
         driver = None

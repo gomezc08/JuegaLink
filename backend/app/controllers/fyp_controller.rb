@@ -68,6 +68,15 @@ class FypController < ApplicationController
     result = MlApiService.get_user(username: @username)
     if result['user']
       @user = result['user']
+      
+      # Check if current user is following this user
+      @is_following = false
+      if current_user && current_user['username'] && current_user['username'] != @user['username']
+        followers_result = MlApiService.get_user_followers(username: current_user['username'])
+        if followers_result && followers_result['followers'].is_a?(Array)
+          @is_following = followers_result['followers'].include?(@user['username'])
+        end
+      end
     else
       redirect_to fyp_search_path, alert: result[:error] || "User not found"
     end
