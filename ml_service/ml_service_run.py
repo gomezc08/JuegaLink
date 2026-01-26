@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 import os
 import logging
@@ -9,6 +9,7 @@ from knowledge_graph.routes.user_route import user_bp
 from knowledge_graph.routes.sport_route import sport_bp
 from knowledge_graph.routes.event_route import event_bp
 from knowledge_graph.routes.field_route import field_bp
+from knowledge_graph.methods import User
 
 logging.basicConfig(
     level=logging.INFO,
@@ -21,6 +22,9 @@ load_dotenv()
 # Create main Flask app
 app = Flask(__name__)
 CORS(app)
+
+# Create user service instance for routes defined in this file
+user_service = User()
 
 # Register all blueprints
 app.register_blueprint(user_bp)

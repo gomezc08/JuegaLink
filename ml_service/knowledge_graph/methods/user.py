@@ -287,6 +287,35 @@ class User:
             if driver:
                 driver.close()
 
+    def search_users(self, query: str):
+        """Search for users by username (case-insensitive partial match). Returns list of user dicts."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+
+            query_cypher = """
+            MATCH(u:User)
+            WHERE toLower(u.username) CONTAINS toLower($query)
+            RETURN u
+            ORDER BY u.username
+            LIMIT 50
+            """
+            params = {"query": query}
+
+            logger.info(f"<user> Searching for users in Neo4j DB: {params}")
+
+            result, summary, keys = driver.execute_query(query_cypher, params)
+            
+            users = [dict(record['u']) for record in result]
+            logger.info(f"<user> Found {len(users)} users matching query in Neo4j DB: {query}")
+            return users
+        except Exception as e:
+            logger.error(f"<user> Error searching for users in Neo4j DB: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
+
     def follow_user(self, user_username: str, follow_username: str):
         """Create a FOLLOWS relationship between users. Returns True if successful."""
         driver = None

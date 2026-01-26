@@ -8,6 +8,7 @@ Rails.application.routes.draw do
   put "fyp/profile", to: "fyp#update_profile"
   get "fyp/search"
   root "home#index"
+  get "fyp/user_page"
   get "home/login"
   post "home/login", to: "home#login_post"
   get "home/signup"
