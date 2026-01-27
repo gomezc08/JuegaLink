@@ -154,6 +154,30 @@ class MlApiService
       handle_response(response)
     end
 
+    def accept_follow_request(username:, accept_username:)
+      uri = URI("#{BASE_URL}/users/accept_follow_request")
+      http = Net::HTTP.new(uri.host, uri.port)
+      request = Net::HTTP::Post.new(uri.path, 'Content-Type' => 'application/json')
+      request.body = {
+        username: username,
+        accept_username: accept_username
+      }.to_json
+      response = http.request(request)
+      handle_response(response)
+    end
+
+    def reject_follow_request(username:, reject_username:)
+      uri = URI("#{BASE_URL}/users/reject_follow_request")
+      http = Net::HTTP.new(uri.host, uri.port)
+      request = Net::HTTP::Post.new(uri.path, 'Content-Type' => 'application/json')
+      request.body = {
+        username: username,
+        reject_username: reject_username
+      }.to_json
+      response = http.request(request)
+      handle_response(response)
+    end
+
     private
 
     def handle_response(response)
