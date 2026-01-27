@@ -126,6 +126,18 @@ class FypController < ApplicationController
   end
 
   def notifications
+    unless current_user && current_user['username']
+      redirect_to home_login_path, alert: "You must be logged in to view notifications"
+      return
+    end
+
+    result = MlApiService.get_follow_requests(username: current_user['username'])
+    if result && result['follow_requests'].is_a?(Array)
+      # Transform array of usernames into array of hashes with 'username' key
+      @follow_requests = result['follow_requests'].map { |username| { 'username' => username } }
+    else
+      @follow_requests = []
+    end
   end
   
   def friends
