@@ -106,7 +106,12 @@ class MlApiService
     end
 
     def get_user_followers_count(username:)
-      get_user_followers(username: username)['count']
+      result = get_user_followers(username: username)
+      if result && result['followers'].is_a?(Array)
+        result['followers'].length
+      else
+        0
+      end
     end
 
     private

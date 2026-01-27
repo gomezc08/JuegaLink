@@ -5,8 +5,7 @@ class FypController < ApplicationController
   def profile
     @user = current_user
     if @user && @user['username']
-      friends_result = MlApiService.get_friends(username: @user['username'])
-      @friends_count = friends_result['count'] || 0
+      @friends_count = MlApiService.get_user_followers_count(username: @user['username']) || 0
     else
       @friends_count = 0
     end
