@@ -3,6 +3,7 @@
     <% if user_signed_in? %>
       <%= link_to "Home", fyp_index_path, class: "nav-link me-3" %>
       <%= link_to "Search", fyp_search_path, class: "nav-link" %>
+      <%= link_to "Notifications", fyp_notifications_path, class: "nav-link" %>
       <%= link_to "Profile", fyp_profile_path, class: "nav-link" %>
     <% else %>
       <%= link_to "Login", home_login_path, class: "nav-link" %>

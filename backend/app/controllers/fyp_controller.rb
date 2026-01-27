@@ -125,6 +125,9 @@ class FypController < ApplicationController
     end
   end
 
+  def notifications
+  end
+  
   def friends
     unless current_user && current_user['username']
       redirect_to home_login_path, alert: "You must be logged in to view friends"
