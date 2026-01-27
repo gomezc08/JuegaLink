@@ -55,6 +55,14 @@ class MlApiService
       handle_response(response)
     end
 
+    def get_user(username:)
+      uri = URI("#{BASE_URL}/users/#{username}")
+      http = Net::HTTP.new(uri.host, uri.port)
+      request = Net::HTTP::Get.new(uri.path, 'Content-Type' => 'application/json')
+      response = http.request(request)
+      handle_response(response)
+    end
+
     def search_users(query:)
       uri = URI("#{BASE_URL}/search/users")
       uri.query = URI.encode_www_form(q: query)
@@ -73,6 +81,70 @@ class MlApiService
 
       response = http.request(request)
       handle_response(response)
+    end
+
+    def follow_user(username:, follow_username:)
+      uri = URI("#{BASE_URL}/users/follow")
+      http = Net::HTTP.new(uri.host, uri.port)
+      request = Net::HTTP::Post.new(uri.path, 'Content-Type' => 'application/json')
+      request.body = {
+        username: username,
+        follow_username: follow_username
+      }.to_json
+
+      response = http.request(request)
+      handle_response(response)
+    end
+
+    def unfollow_user(username:, unfollow_username:)
+      uri = URI("#{BASE_URL}/users/unfollow")
+      http = Net::HTTP.new(uri.host, uri.port)
+      request = Net::HTTP::Post.new(uri.path, 'Content-Type' => 'application/json')
+      request.body = {
+        username: username,
+        unfollow_username: unfollow_username
+      }.to_json
+
+      response = http.request(request)
+      handle_response(response)
+    end
+
+
+
+    def get_user_followers(username:)
+      uri = URI("#{BASE_URL}/users/followers")
+      uri.query = URI.encode_www_form(username: username)
+      http = Net::HTTP.new(uri.host, uri.port)
+      request = Net::HTTP::Get.new(uri.path + '?' + uri.query, 'Content-Type' => 'application/json')
+      response = http.request(request)
+      handle_response(response)
+    end
+
+    def get_user_followers_count(username:)
+      result = get_user_followers(username: username)
+      if result && result['followers'].is_a?(Array)
+        result['followers'].length
+      else
+        0
+      end
+    end
+
+    def get_user_following(username:)
+      uri = URI("#{BASE_URL}/users/following")
+      uri.query = URI.encode_www_form(username: username)
+      http = Net::HTTP.new(uri.host, uri.port)
+      request = Net::HTTP::Get.new(uri.path + '?' + uri.query, 'Content-Type' => 'application/json')
+      response = http.request(request)
+      handle_response(response)
+    end
+
+    def get_user_following_count(username:)
+      result = get_user_following(username: username)
+      if result && result['following'].is_a?(Array)
+        result['following'].length
+      else
+        0
+      end
     end
 
     private

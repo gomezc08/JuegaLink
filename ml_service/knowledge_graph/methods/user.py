@@ -195,9 +195,41 @@ class User:
             success = summary.counters.relationships_created > 0
             if success:
                 logger.info(f"<user> Friend relationship added in Neo4j DB: {user_username} -> {friend_username}")
+                self.add_follower(user_username, friend_username)
             return success
         except Exception as e:
             logger.error(f"<user> Error adding friend relationship in Neo4j DB: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
+    
+    def add_follower(self, user_username: str, follower_username: str):
+        """Add a follower relationship. Returns True if successful."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+            
+            query = """
+            MATCH(a:User {username: $user_username})
+            MATCH(b:User {username: $follower_username})
+            CREATE(a)-[:FOLLOWS]->(b)
+            RETURN a, b
+            """
+            params = {
+                "user_username": user_username,
+                "follower_username": follower_username
+            }
+
+            logger.info(f"<user> Adding follower relationship in Neo4j DB: {params}")
+
+            result, summary, keys = driver.execute_query(query, params)
+            success = summary.counters.relationships_created > 0
+            if success:
+                logger.info(f"<user> Follower relationship added in Neo4j DB: {user_username} -> {follower_username}")
+            return success
+        except Exception as e:
+            logger.error(f"<user> Error adding follower relationship in Neo4j DB: {e}")
             raise e
         finally:
             if driver:
@@ -287,6 +319,117 @@ class User:
             if driver:
                 driver.close()
 
+    def get_user_followers(self, username: str):
+        """Get all followers of a user. Returns list of follower usernames."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+
+            query = """
+            MATCH(u:User {username: $username})-[:FOLLOWS]->(f:User)
+            RETURN f.username as follower_username
+            """
+            params = {"username": username}
+
+            logger.info(f"<user> Getting followers for user in Neo4j DB: {params}")
+
+            result, summary, keys = driver.execute_query(query, params)
+            
+            followers = [record['follower_username'] for record in result]
+            logger.info(f"<user> Found {len(followers)} followers for user in Neo4j DB: {username}")
+            return followers
+        except Exception as e:
+            logger.error(f"<user> Error getting followers for user in Neo4j DB: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
+    
+    def get_user_following(self, username: str):
+        """Get all following of a user. Returns list of following usernames."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+
+            query = """
+            MATCH(u:User {username: $username})-[:FOLLOWS]->(f:User)
+            RETURN f.username as following_username
+        """
+            params = {"username": username}
+
+            logger.info(f"<user> Getting following for user in Neo4j DB: {params}")
+
+            result, summary, keys = driver.execute_query(query, params)
+            
+            following = [record['following_username'] for record in result]
+            logger.info(f"<user> Found {len(following)} following for user in Neo4j DB: {username}")
+            return following
+        except Exception as e:
+            logger.error(f"<user> Error getting following for user in Neo4j DB: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
+    
+    def get_user(self, username: str):
+        """Get a user by username. Returns user data dict or None."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+
+            query = """
+            MATCH(u:User {username: $username})
+            RETURN u
+            """
+            params = {"username": username}
+
+            logger.info(f"<user> Getting user from Neo4j DB: {params}")
+
+            result, summary, keys = driver.execute_query(query, params)
+            
+            if result:
+                user_data = dict(result[0]['u'])
+                logger.info(f"<user> User found in Neo4j DB: {user_data}")
+                return user_data
+            else:
+                logger.info(f"<user> User not found in Neo4j DB: {username}")
+                return None
+        except Exception as e:
+            logger.error(f"<user> Error getting user from Neo4j DB: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
+
+    def search_users(self, query: str):
+        """Search for users by username (case-insensitive partial match). Returns list of user dicts."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+
+            query_cypher = """
+            MATCH(u:User)
+            WHERE toLower(u.username) CONTAINS toLower($query)
+            RETURN u
+            ORDER BY u.username
+            LIMIT 50
+            """
+            params = {"query": query}
+
+            logger.info(f"<user> Searching for users in Neo4j DB: {params}")
+
+            result, summary, keys = driver.execute_query(query_cypher, params)
+            
+            users = [dict(record['u']) for record in result]
+            logger.info(f"<user> Found {len(users)} users matching query in Neo4j DB: {query}")
+            return users
+        except Exception as e:
+            logger.error(f"<user> Error searching for users in Neo4j DB: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
+
     def follow_user(self, user_username: str, follow_username: str):
         """Create a FOLLOWS relationship between users. Returns True if successful."""
         driver = None
@@ -313,6 +456,38 @@ class User:
             return success
         except Exception as e:
             logger.error(f"<user> Error adding FOLLOWS relationship in Neo4j DB: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
+
+    def unfollow_user(self, user_username: str, unfollow_username: str):
+        """Delete a FOLLOWS relationship between users. Returns True if successful."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+
+            query = """
+            MATCH(a:User {username: $user_username})-[r:FOLLOWS]->(b:User {username: $unfollow_username})
+            DELETE r
+            RETURN a, b
+            """
+            params = {
+                "user_username": user_username,
+                "unfollow_username": unfollow_username
+            }
+
+            logger.info(f"<user> Removing FOLLOWS relationship in Neo4j DB: {params}")
+
+            result, summary, keys = driver.execute_query(query, params)
+            success = summary.counters.relationships_deleted > 0
+            if success:
+                logger.info(f"<user> FOLLOWS relationship removed from Neo4j DB: {user_username} -X-> {unfollow_username}")
+            else:
+                logger.info(f"<user> FOLLOWS relationship not found in Neo4j DB: {user_username} -> {unfollow_username}")
+            return success
+        except Exception as e:
+            logger.error(f"<user> Error removing FOLLOWS relationship in Neo4j DB: {e}")
             raise e
         finally:
             if driver:

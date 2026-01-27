@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 import os
 import logging
@@ -9,6 +9,7 @@ from knowledge_graph.routes.user_route import user_bp
 from knowledge_graph.routes.sport_route import sport_bp
 from knowledge_graph.routes.event_route import event_bp
 from knowledge_graph.routes.field_route import field_bp
+from knowledge_graph.methods import User
 
 logging.basicConfig(
     level=logging.INFO,
@@ -21,6 +22,9 @@ load_dotenv()
 # Create main Flask app
 app = Flask(__name__)
 CORS(app)
+
+# Create user service instance for routes defined in this file
+user_service = User()
 
 # Register all blueprints
 app.register_blueprint(user_bp)
@@ -95,6 +99,23 @@ def get_user_friends(username):
         }), 200
     except Exception as e:
         logger.error(f"<ml_service_run> Error getting friends: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/users/<username>', methods=['GET'])
+def get_user(username):
+    """Get a user by username"""
+    try:
+        user = user_service.get_user(username)
+        if user:
+            return jsonify({
+                "user": user
+            }), 200
+        else:
+            return jsonify({
+                "error": "User not found"
+            }), 404
+    except Exception as e:
+        logger.error(f"<ml_service_run> Error getting user: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/search/users', methods=['GET'])

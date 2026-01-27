@@ -40,22 +40,24 @@
             <% if @filter == 'user' %>
               <div class="users-results">
                 <% @results.each do |user| %>
-                  <div class="result-card user-card">
-                    <div class="result-card-body">
-                      <div class="user-avatar">
-                        <%= user['username']&.first&.upcase || 'U' %>
-                      </div>
-                      <div class="result-info">
-                        <h4 class="result-title"><%= user['username'] %></h4>
-                        <% if user['bio'].present? %>
-                          <p class="result-description"><%= truncate(user['bio'], length: 100) %></p>
-                        <% end %>
-                        <% if user['city'].present? || user['state'].present? %>
-                          <p class="result-meta">📍 <%= [user['city'], user['state']].compact.join(', ') %></p>
-                        <% end %>
+                  <%= link_to fyp_user_page_path(username: user['username']), class: "result-card-link" do %>
+                    <div class="result-card user-card">
+                      <div class="result-card-body">
+                        <div class="user-avatar">
+                          <%= user['username']&.first&.upcase || 'U' %>
+                        </div>
+                        <div class="result-info">
+                          <h4 class="result-title"><%= user['username'] %></h4>
+                          <% if user['bio'].present? %>
+                            <p class="result-description"><%= truncate(user['bio'], length: 100) %></p>
+                          <% end %>
+                          <% if user['city'].present? || user['state'].present? %>
+                            <p class="result-meta">📍 <%= [user['city'], user['state']].compact.join(', ') %></p>
+                          <% end %>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  <% end %>
                 <% end %>
               </div>
             <% else %>

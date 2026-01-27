@@ -5,10 +5,11 @@ class FypController < ApplicationController
   def profile
     @user = current_user
     if @user && @user['username']
-      friends_result = MlApiService.get_friends(username: @user['username'])
-      @friends_count = friends_result['count'] || 0
+      @followers_count = MlApiService.get_user_followers_count(username: @user['username']) || 0
+      @following_count = MlApiService.get_user_following_count(username: @user['username']) || 0
     else
-      @friends_count = 0
+      @followers_count = 0
+      @following_count = 0
     end
   end
 
@@ -63,6 +64,86 @@ class FypController < ApplicationController
     end
   end
 
+  def user_page
+    @username = params[:username]
+    result = MlApiService.get_user(username: @username)
+    if result['user']
+      @user = result['user']
+      
+      # Check if current user is following this user
+      @is_following = false
+      if current_user && current_user['username'] && current_user['username'] != @user['username']
+        following_result = MlApiService.get_user_following(username: current_user['username'])
+        if following_result && following_result['following'].is_a?(Array)
+          @is_following = following_result['following'].include?(@user['username'])
+        end
+      end
+    else
+      redirect_to fyp_search_path, alert: result[:error] || "User not found"
+    end
+  end
+
+  def follow
+    unless current_user && current_user['username']
+      redirect_to home_login_path, alert: "You must be logged in to follow users"
+      return
+    end
+
+    follow_username = params[:follow_username]
+    unless follow_username.present?
+      redirect_to fyp_search_path, alert: "Invalid user to follow"
+      return
+    end
+
+    result = MlApiService.follow_user(
+      username: current_user['username'],
+      follow_username: follow_username
+    )
+
+    if result['message']
+      redirect_to fyp_user_page_path(username: follow_username), notice: "You are now following #{follow_username}!"
+    else
+      redirect_to fyp_user_page_path(username: follow_username), alert: result[:error] || "Failed to follow user"
+    end
+  end
+
+  def unfollow
+    unless current_user && current_user['username']
+      redirect_to home_login_path, alert: "You must be logged in to unfollow users"
+      return
+    end
+
+    result = MlApiService.unfollow_user(
+      username: current_user['username'],
+      unfollow_username: params[:unfollow_username]
+    )
+
+    if result['message']
+      redirect_to fyp_user_page_path(username: params[:unfollow_username]), notice: "You have unfollowed #{params[:unfollow_username]}!"
+    else
+      redirect_to fyp_user_page_path(username: params[:unfollow_username]), alert: result[:error] || "Failed to unfollow user"
+    end
+  end
+
+  def friends
+    unless current_user && current_user['username']
+      redirect_to home_login_path, alert: "You must be logged in to view friends"
+      return
+    end
+
+    @is_followers = params[:is_followers] == 'true' || params[:is_followers] == '1'
+    
+    if @is_followers
+      result = MlApiService.get_user_followers(username: current_user['username'])
+      @friends_list = result && result['followers'].is_a?(Array) ? result['followers'] : []
+      @page_title = "Followers"
+    else
+      result = MlApiService.get_user_following(username: current_user['username'])
+      @friends_list = result && result['following'].is_a?(Array) ? result['following'] : []
+      @page_title = "Following"
+    end
+  end
+  
   def login
     result = MlApiService.login(
       username: params[:username],
