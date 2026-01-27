@@ -23,12 +23,16 @@
                 <span class="stat-label">posts</span>
               </div>
               <div class="stat-item">
-                <span class="stat-number"><%= @friends_count %></span>
-                <span class="stat-label">followers</span>
+                <%= link_to fyp_friends_path(is_followers: true), class: "stat-link" do %>
+                  <span class="stat-number"><%= @followers_count %></span>
+                  <span class="stat-label">followers</span>
+                <% end %>
               </div>
               <div class="stat-item">
-                <span class="stat-number"><%= @friends_count %></span>
-                <span class="stat-label">following</span>
+                <%= link_to fyp_friends_path(is_followers: false), class: "stat-link" do %>
+                  <span class="stat-number"><%= @following_count %></span>
+                  <span class="stat-label">following</span>
+                <% end %>
               </div>
             </div>
             

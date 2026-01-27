@@ -214,6 +214,35 @@ def get_user_followers():
         logger.error(f"<ml_service_run> Error getting user followers: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+# Get user following route.
+@user_bp.route('/users/following', methods=['GET'])
+def get_user_following():
+    """Get all following of a user"""
+    try:
+        username = request.args.get('username')
+        
+        if not username:
+            return jsonify({"error": "Missing required field: username"}), 400
+        
+        # Get user following
+        logger.info(f"<ml_service_run> Getting following for user: {username}")
+        following = user_service.get_user_following(username=username)
+        
+        if following:
+            logger.info(f"<ml_service_run> Found {len(following)} following for user: {username}")
+            return jsonify({
+                "message": "User following retrieved successfully",
+                "following": following
+            }), 200
+        else:
+            return jsonify({
+                "message": "User following retrieved successfully",
+                "following": []
+            }), 200
+    except Exception as e:
+        logger.error(f"<ml_service_run> Error getting user following: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+        
 # User plays sport route.
 @user_bp.route('/users/play-sport', methods=['POST'])
 def play_sport():

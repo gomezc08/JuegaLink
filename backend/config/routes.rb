@@ -10,6 +10,7 @@ Rails.application.routes.draw do
   root "home#index"
   get "fyp/user_page/:username", to: "fyp#user_page", as: :fyp_user_page
   post "fyp/follow", to: "fyp#follow", as: :fyp_follow
+  get "fyp/friends", to: "fyp#friends", as: :fyp_friends
   get "home/login"
   post "home/login", to: "home#login_post"
   get "home/signup"

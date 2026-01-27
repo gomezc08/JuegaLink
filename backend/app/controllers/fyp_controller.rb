@@ -5,9 +5,11 @@ class FypController < ApplicationController
   def profile
     @user = current_user
     if @user && @user['username']
-      @friends_count = MlApiService.get_user_followers_count(username: @user['username']) || 0
+      @followers_count = MlApiService.get_user_followers_count(username: @user['username']) || 0
+      @following_count = MlApiService.get_user_following_count(username: @user['username']) || 0
     else
-      @friends_count = 0
+      @followers_count = 0
+      @following_count = 0
     end
   end
 
@@ -102,6 +104,25 @@ class FypController < ApplicationController
       redirect_to fyp_user_page_path(username: follow_username), notice: "You are now following #{follow_username}!"
     else
       redirect_to fyp_user_page_path(username: follow_username), alert: result[:error] || "Failed to follow user"
+    end
+  end
+
+  def friends
+    unless current_user && current_user['username']
+      redirect_to home_login_path, alert: "You must be logged in to view friends"
+      return
+    end
+
+    @is_followers = params[:is_followers] == 'true' || params[:is_followers] == '1'
+    
+    if @is_followers
+      result = MlApiService.get_user_followers(username: current_user['username'])
+      @friends_list = result && result['followers'].is_a?(Array) ? result['followers'] : []
+      @page_title = "Followers"
+    else
+      result = MlApiService.get_user_following(username: current_user['username'])
+      @friends_list = result && result['following'].is_a?(Array) ? result['following'] : []
+      @page_title = "Following"
     end
   end
   

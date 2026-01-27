@@ -114,6 +114,24 @@ class MlApiService
       end
     end
 
+    def get_user_following(username:)
+      uri = URI("#{BASE_URL}/users/following")
+      uri.query = URI.encode_www_form(username: username)
+      http = Net::HTTP.new(uri.host, uri.port)
+      request = Net::HTTP::Get.new(uri.path + '?' + uri.query, 'Content-Type' => 'application/json')
+      response = http.request(request)
+      handle_response(response)
+    end
+
+    def get_user_following_count(username:)
+      result = get_user_following(username: username)
+      if result && result['following'].is_a?(Array)
+        result['following'].length
+      else
+        0
+      end
+    end
+
     private
 
     def handle_response(response)
