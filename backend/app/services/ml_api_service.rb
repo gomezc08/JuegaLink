@@ -96,6 +96,21 @@ class MlApiService
       handle_response(response)
     end
 
+    def unfollow_user(username:, unfollow_username:)
+      uri = URI("#{BASE_URL}/users/unfollow")
+      http = Net::HTTP.new(uri.host, uri.port)
+      request = Net::HTTP::Post.new(uri.path, 'Content-Type' => 'application/json')
+      request.body = {
+        username: username,
+        unfollow_username: unfollow_username
+      }.to_json
+
+      response = http.request(request)
+      handle_response(response)
+    end
+
+
+
     def get_user_followers(username:)
       uri = URI("#{BASE_URL}/users/followers")
       uri.query = URI.encode_www_form(username: username)

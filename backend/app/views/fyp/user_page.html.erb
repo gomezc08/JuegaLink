@@ -14,11 +14,14 @@
             <div class="d-flex align-items-center mb-3">
               <h2 class="profile-username mb-0 me-3"><%= @user['username'] %></h2>
               <% if current_user && current_user['username'] != @user['username'] %>
-                <%= form_with url: fyp_follow_path, method: :post, local: true, class: "d-inline" do |form| %>
-                  <%= form.hidden_field :follow_username, value: @user['username'] %>
-                  <% if @is_following %>
+                <% if @is_following %>
+                  <%= form_with url: fyp_unfollow_path, method: :post, local: true, class: "d-inline" do |form| %>
+                    <%= form.hidden_field :unfollow_username, value: @user['username'] %>
                     <%= form.submit "Unfollow", class: "btn btn-outline-secondary btn-sm" %>
-                  <% else %>
+                  <% end %>
+                <% else %>
+                  <%= form_with url: fyp_follow_path, method: :post, local: true, class: "d-inline" do |form| %>
+                    <%= form.hidden_field :follow_username, value: @user['username'] %>
                     <%= form.submit "Follow", class: "btn btn-primary btn-sm" %>
                   <% end %>
                 <% end %>

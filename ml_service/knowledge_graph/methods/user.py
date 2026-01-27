@@ -461,6 +461,38 @@ class User:
             if driver:
                 driver.close()
 
+    def unfollow_user(self, user_username: str, unfollow_username: str):
+        """Delete a FOLLOWS relationship between users. Returns True if successful."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+
+            query = """
+            MATCH(a:User {username: $user_username})-[r:FOLLOWS]->(b:User {username: $unfollow_username})
+            DELETE r
+            RETURN a, b
+            """
+            params = {
+                "user_username": user_username,
+                "unfollow_username": unfollow_username
+            }
+
+            logger.info(f"<user> Removing FOLLOWS relationship in Neo4j DB: {params}")
+
+            result, summary, keys = driver.execute_query(query, params)
+            success = summary.counters.relationships_deleted > 0
+            if success:
+                logger.info(f"<user> FOLLOWS relationship removed from Neo4j DB: {user_username} -X-> {unfollow_username}")
+            else:
+                logger.info(f"<user> FOLLOWS relationship not found in Neo4j DB: {user_username} -> {unfollow_username}")
+            return success
+        except Exception as e:
+            logger.error(f"<user> Error removing FOLLOWS relationship in Neo4j DB: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
+
     def play_sport(self, username: str, sport_name: str, skill_level: str, years_experience: int):
         """Create a PLAYS relationship between user and sport. Returns True if successful."""
         driver = None

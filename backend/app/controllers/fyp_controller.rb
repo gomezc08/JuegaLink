@@ -73,9 +73,9 @@ class FypController < ApplicationController
       # Check if current user is following this user
       @is_following = false
       if current_user && current_user['username'] && current_user['username'] != @user['username']
-        followers_result = MlApiService.get_user_followers(username: current_user['username'])
-        if followers_result && followers_result['followers'].is_a?(Array)
-          @is_following = followers_result['followers'].include?(@user['username'])
+        following_result = MlApiService.get_user_following(username: current_user['username'])
+        if following_result && following_result['following'].is_a?(Array)
+          @is_following = following_result['following'].include?(@user['username'])
         end
       end
     else
@@ -104,6 +104,24 @@ class FypController < ApplicationController
       redirect_to fyp_user_page_path(username: follow_username), notice: "You are now following #{follow_username}!"
     else
       redirect_to fyp_user_page_path(username: follow_username), alert: result[:error] || "Failed to follow user"
+    end
+  end
+
+  def unfollow
+    unless current_user && current_user['username']
+      redirect_to home_login_path, alert: "You must be logged in to unfollow users"
+      return
+    end
+
+    result = MlApiService.unfollow_user(
+      username: current_user['username'],
+      unfollow_username: params[:unfollow_username]
+    )
+
+    if result['message']
+      redirect_to fyp_user_page_path(username: params[:unfollow_username]), notice: "You have unfollowed #{params[:unfollow_username]}!"
+    else
+      redirect_to fyp_user_page_path(username: params[:unfollow_username]), alert: result[:error] || "Failed to unfollow user"
     end
   end
 
