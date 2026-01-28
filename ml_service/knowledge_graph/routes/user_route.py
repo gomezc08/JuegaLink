@@ -268,7 +268,7 @@ def get_user_followers():
                 "followers": followers
             }), 200
         else:
-            return jsonify({
+            return jsonify({ 
                 "message": "User followers retrieved successfully",
                 "followers": []
             }), 200
