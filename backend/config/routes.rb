@@ -11,10 +11,7 @@ Rails.application.routes.draw do
   get "fyp/user_page/:username", to: "fyp#user_page", as: :fyp_user_page
   post "fyp/follow", to: "fyp#follow", as: :fyp_follow
   post "fyp/unfollow", to: "fyp#unfollow", as: :fyp_unfollow
-  post "fyp/accept_follow_request", to: "fyp#accept_follow_request", as: :fyp_accept_follow_request
-  post "fyp/reject_follow_request", to: "fyp#reject_follow_request", as: :fyp_reject_follow_request
   get "fyp/friends", to: "fyp#friends", as: :fyp_friends
-  get "fyp/notifications", to: "fyp#notifications", as: :fyp_notifications
   get "home/login"
   post "home/login", to: "home#login_post"
   get "home/signup"
