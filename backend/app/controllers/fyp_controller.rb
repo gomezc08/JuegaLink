@@ -125,6 +125,72 @@ class FypController < ApplicationController
     end
   end
 
+  def notifications
+    unless current_user && current_user['username']
+      redirect_to home_login_path, alert: "You must be logged in to view notifications"
+      return
+    end
+
+    result = MlApiService.get_follow_requests(username: current_user['username'])
+    if result && result['follow_requests'].is_a?(Array)
+      # Transform array of usernames into array of hashes with 'username' key
+      @follow_requests = result['follow_requests'].map { |username| { 'username' => username } }
+    else
+      @follow_requests = []
+    end
+  end
+
+  def accept_follow_request
+    unless current_user && current_user['username']
+      redirect_to home_login_path, alert: "You must be logged in to accept follow requests"
+      return
+    end
+
+    requester_username = params[:username]
+    unless requester_username.present?
+      redirect_to fyp_notifications_path, alert: "Invalid request"
+      return
+    end
+
+    # Accept by following them back (creates mutual follow)
+    result = MlApiService.follow_user(
+      username: current_user['username'],
+      follow_username: requester_username
+    )
+
+    if result['message']
+      redirect_to fyp_notifications_path, notice: "You have accepted #{requester_username}'s follow request!"
+    else
+      redirect_to fyp_notifications_path, alert: result[:error] || "Failed to accept follow request"
+    end
+  end
+
+  def reject_follow_request
+    unless current_user && current_user['username']
+      redirect_to home_login_path, alert: "You must be logged in to reject follow requests"
+      return
+    end
+
+    requester_username = params[:username]
+    unless requester_username.present?
+      redirect_to fyp_notifications_path, alert: "Invalid request"
+      return
+    end
+
+    # Reject by removing their follow relationship (unfollow_user with swapped params)
+    # This removes: (requester)-[:FOLLOWS]->(current_user)
+    result = MlApiService.unfollow_user(
+      username: requester_username,
+      unfollow_username: current_user['username']
+    )
+
+    if result['message']
+      redirect_to fyp_notifications_path, notice: "You have rejected #{requester_username}'s follow request!"
+    else
+      redirect_to fyp_notifications_path, alert: result[:error] || "Failed to reject follow request"
+    end
+  end
+  
   def friends
     unless current_user && current_user['username']
       redirect_to home_login_path, alert: "You must be logged in to view friends"

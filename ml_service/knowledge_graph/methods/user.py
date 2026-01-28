@@ -319,6 +319,37 @@ class User:
             if driver:
                 driver.close()
 
+    # Get user follow requests route.
+    def get_user_follow_requests(self, username: str):
+        """Get all follow requests for a user (users who follow this user but this user doesn't follow back). 
+        Returns list of follow request usernames."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+
+            query = """
+            MATCH(u:User {username: $username})<-[:FOLLOWS]-(f:User)
+            WHERE NOT (u)-[:FOLLOWS]->(f)
+            RETURN f.username as request_username
+            """
+            params = {"username": username}
+
+            logger.info(f"<user> Getting follow requests for user in Neo4j DB: {params}")
+
+            result, summary, keys = driver.execute_query(query, params)
+            
+            follow_requests = [record['request_username'] for record in result]
+            logger.info(f"<user> Found {len(follow_requests)} follow requests for user in Neo4j DB: {username}")
+            return follow_requests
+        except Exception as e:
+            logger.error(f"<user> Error getting follow requests for user in Neo4j DB: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
+
+
+    # Get user followers route.
     def get_user_followers(self, username: str):
         """Get all followers of a user. Returns list of follower usernames."""
         driver = None
@@ -326,7 +357,7 @@ class User:
             driver = self.connector.connect()
 
             query = """
-            MATCH(u:User {username: $username})-[:FOLLOWS]->(f:User)
+            MATCH(u:User {username: $username})<-[:FOLLOWS]-(f:User)
             RETURN f.username as follower_username
             """
             params = {"username": username}

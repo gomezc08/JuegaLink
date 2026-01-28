@@ -1,0 +1,52 @@
+<div class="notifications-container">
+  <div class="notifications-header mb-4">
+    <h2 class="notifications-title">Notifications</h2>
+    <%= link_to "← Back to Profile", fyp_profile_path, class: "btn btn-outline-secondary btn-sm" %>
+  </div>
+
+  <div class="notifications-tabs mb-4">
+    <ul class="nav nav-tabs">
+      <li class="nav-item">
+        <a class="nav-link active" href="#follow-requests" data-bs-toggle="tab">Follow Requests</a>
+      </li>
+    </ul>
+  </div>
+
+  <div class="tab-content">
+    <div class="tab-pane fade show active" id="follow-requests">
+      <% if @follow_requests && @follow_requests.any? %>
+        <div class="notifications-list">
+          <% @follow_requests.each do |request| %>
+            <div class="notification-card">
+              <div class="notification-avatar">
+                <%= request['username']&.first&.upcase || 'U' %>
+              </div>
+              <div class="notification-info">
+                <h4 class="notification-username">
+                  <%= link_to request['username'], fyp_user_page_path(username: request['username']), class: "notification-link" %>
+                </h4>
+                <p class="notification-text">wants to follow you</p>
+              </div>
+              <div class="notification-actions">
+                <%= form_with url: fyp_accept_follow_request_path, method: :post, local: true, class: "d-inline me-2" do |form| %>
+                  <%= form.hidden_field :username, value: request['username'] %>
+                  <%= form.submit "Accept", class: "btn btn-primary btn-sm" %>
+                <% end %>
+                <%= form_with url: fyp_reject_follow_request_path, method: :post, local: true, class: "d-inline" do |form| %>
+                  <%= form.hidden_field :username, value: request['username'] %>
+                  <%= form.submit "Reject", class: "btn btn-outline-secondary btn-sm" %>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="no-notifications">
+          <p class="no-notifications-text">
+            You don't have any follow requests at the moment.
+          </p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
