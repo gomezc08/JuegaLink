@@ -15,6 +15,7 @@ Rails.application.routes.draw do
   post "fyp/reject_follow_request", to: "fyp#reject_follow_request", as: :fyp_reject_follow_request
   get "fyp/friends", to: "fyp#friends", as: :fyp_friends
   get "fyp/notifications", to: "fyp#notifications", as: :fyp_notifications
+  get "fyp/create_event", to: "fyp#create_event", as: :fyp_create_event
   get "home/login"
   post "home/login", to: "home#login_post"
   get "home/signup"

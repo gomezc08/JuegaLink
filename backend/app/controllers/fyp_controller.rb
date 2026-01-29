@@ -209,6 +209,9 @@ class FypController < ApplicationController
       @page_title = "Following"
     end
   end
+
+  def create_event
+  end
   
   def login
     result = MlApiService.login(
