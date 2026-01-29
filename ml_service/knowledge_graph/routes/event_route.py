@@ -114,7 +114,7 @@ def update_event():
         if 'event_name' not in data:
             return jsonify({"error": "Missing required field: event_name"}), 400
         
-        # Update event
+        # Update event (player count is updated via /events/joined-by-user when a user joins)
         logger.info(f"<ml_service_run> Updating event: {data['event_name']}")
         event = event_service.update_event(
             event_name=data['event_name'],
@@ -238,4 +238,53 @@ def for_sport():
             }), 400
     except Exception as e:
         logger.error(f"<ml_service_run> Error creating for sport relationship: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+# Event for sport route.
+@event_bp.route('/events/joined-by-user', methods=['POST'])
+def joined_by_user():
+    """Create a JOINED relationship between an user and an event"""
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        required_fields = ['event_name', 'username']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({"error": f"Missing required field: {field}"}), 400
+
+        event_name = data['event_name']
+        username = data['username']
+
+        # Check event exists and is not full before joining
+        event = event_service.get_event(event_name=event_name)
+        if not event:
+            return jsonify({"error": "Event not found"}), 404
+
+        current = event.get('current_players') if event.get('current_players') is not None else 0
+        max_players = event.get('max_players')
+        if int(max_players) is not None and int(current) >= int(max_players):
+            return jsonify({"error": "Event is full"}), 400
+
+        # Create JOINED relationship
+        logger.info(f"<ml_service_run> Creating JOINED relationship: {username} -> {event_name}")
+        success = event_service.user_joined_event(event_name=event_name, username=username)
+
+        if not success:
+            return jsonify({
+                "error": "Failed to join event (event or user not found)"
+            }), 400
+
+        # Update player count using existing update_event
+        event_service.update_event(
+            event_name=event_name,
+            current_players=current + 1
+        )
+
+        logger.info(f"<ml_service_run> JOINED relationship created and player count updated")
+        return jsonify({
+            "message": "User joined event successfully"
+        }), 201
+    except Exception as e:
+        logger.error(f"<ml_service_run> Error creating user joined event relationship: {str(e)}")
         return jsonify({"error": str(e)}), 500

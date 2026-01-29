@@ -250,3 +250,36 @@ class Event:
         finally:
             if driver:
                 driver.close()
+    
+    def user_joined_event(self, event_name: str, username: str):
+        """Create a JOINED relationship between a user and an event. Returns True if successful."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+
+            query = """
+            MATCH (e:Event {event_name: $event_name})
+            MATCH (u:User {username: $username})
+            CREATE (u)-[:JOINED]->(e)
+            RETURN e, u
+            """
+            params = {
+                "event_name": event_name,
+                "username": username,
+            }
+
+            logger.info(f"<event> Adding JOINED relationship in Neo4j DB: {params}")
+
+            result, summary, keys = driver.execute_query(query, params)
+            success = summary.counters.relationships_created > 0
+            if success:
+                logger.info(f"<event> JOINED relationship added in Neo4j DB: {username} -> {event_name}")
+            else:
+                logger.info(f"<event> Join failed (event or user not found): {username} -> {event_name}")
+            return success
+        except Exception as e:
+            logger.error(f"<event> Error adding JOINED relationship in Neo4j DB: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
