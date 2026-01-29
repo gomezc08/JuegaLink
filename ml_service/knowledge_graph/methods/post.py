@@ -32,10 +32,6 @@ class Post:
             CREATE(p:Post{
                 title: $title,
                 content: $content,
-                event_name_mention: $event_name_mention,
-                field_name_mention: $field_name_mention,
-                sport_name_mention: $sport_name_mention,
-                user_username_mentions: $user_username_mentions,
                 created_at: $created_at
             })
             RETURN p, elementId(p) AS post_id
@@ -43,10 +39,6 @@ class Post:
             params = {
                 "title": title,
                 "content": content,
-                "event_name_mention": event_name_mention,
-                "field_name_mention": field_name_mention,
-                "sport_name_mention": sport_name_mention,
-                "user_username_mentions": user_username_mentions,
                 "created_at": datetime.now().isoformat()
             }
 
@@ -54,12 +46,26 @@ class Post:
 
             result, summary, keys = driver.execute_query(query, params)
 
-            if result:
-                record = result[0]
-                post_data = dict(record["p"])
-                post_data["post_id"] = record["post_id"]
-                logger.info(f"<post> Post added to Neo4j DB: {post_data}")
-                return post_data
+            if not result:
+                logger.error(f"<post> Failed to add post to Neo4j DB: {params}")
+                return None
+
+            record = result[0]
+            post_id = record["post_id"]
+            post_data = dict(record["p"])
+            post_data["post_id"] = post_id
+
+            # create relationships (tags).
+            self._create_about_event(post_id, event_name_mention)
+            if field_name_mention:
+                self._create_about_field(post_id, field_name_mention)
+            if sport_name_mention:
+                self._create_about_sport(post_id, sport_name_mention)
+            for username in (user_username_mentions or []):
+                self._create_mentions_user(post_id, username)
+
+            logger.info(f"<post> Post added to Neo4j DB: {post_data}")
+            return post_data
         except Exception as e:
             logger.error(f"<post> Error adding post to Neo4j DB: {e}")
             raise e
@@ -271,130 +277,6 @@ class Post:
         finally:
             if driver:
                 driver.close()
-
-    def tag_event(self, post_id: str, event_name: str) -> bool:
-        """Tag an event in a post by creating a TAGS_EVENT relationship."""
-        driver = None
-        try:
-            driver = self.connector.connect()
-
-            query = """
-            MATCH (p:Post)
-            WHERE elementId(p) = $post_id
-            MATCH (e:Event {event_name: $event_name})
-            CREATE (p)-[:TAGS_EVENT]->(e)
-            RETURN p, e
-            """
-            params = {"post_id": post_id, "event_name": event_name}
-
-            logger.info(f"<post> Adding TAGS_EVENT relationship in Neo4j DB: {params}")
-
-            result, summary, keys = driver.execute_query(query, params)
-            success = summary.counters.relationships_created > 0
-            if success:
-                logger.info(f"<post> TAGS_EVENT relationship added in Neo4j DB: {post_id} -> {event_name}")
-            else:
-                logger.info(f"<post> Failed to add TAGS_EVENT relationship in Neo4j DB: {post_id} -> {event_name}")
-            return success
-        except Exception as e:
-            logger.error(f"<post> Error adding TAGS_EVENT relationship in Neo4j DB: {e}")
-            raise e
-        finally:
-            if driver:
-                driver.close()
-
-    def tag_field(self, post_id: str, field_name: str) -> bool:
-        """Tag a field in a post by creating a TAGS_FIELD relationship."""
-        driver = None
-        try:
-            driver = self.connector.connect()
-
-            query = """
-            MATCH (p:Post)
-            WHERE elementId(p) = $post_id
-            MATCH (f:Field {field_name: $field_name})
-            CREATE (p)-[:TAGS_FIELD]->(f)
-            RETURN p, f
-            """
-            params = {"post_id": post_id, "field_name": field_name}
-
-            logger.info(f"<post> Adding TAGS_FIELD relationship in Neo4j DB: {params}")
-
-            result, summary, keys = driver.execute_query(query, params)
-            success = summary.counters.relationships_created > 0
-            if success:
-                logger.info(f"<post> TAGS_FIELD relationship added in Neo4j DB: {post_id} -> {field_name}")
-            else:
-                logger.info(f"<post> Failed to add TAGS_FIELD relationship in Neo4j DB: {post_id} -> {field_name}")
-            return success
-        except Exception as e:
-            logger.error(f"<post> Error adding TAGS_FIELD relationship in Neo4j DB: {e}")
-            raise e
-        finally:
-            if driver:
-                driver.close()
-
-    def tag_sport(self, post_id: str, sport_name: str) -> bool:
-        """Tag a sport in a post by creating a TAGS_SPORT relationship."""
-        driver = None
-        try:
-            driver = self.connector.connect()
-
-            query = """
-            MATCH (p:Post)
-            WHERE elementId(p) = $post_id
-            MATCH (s:Sport {sport_name: $sport_name})
-            CREATE (p)-[:TAGS_SPORT]->(s)
-            RETURN p, s
-            """
-            params = {"post_id": post_id, "sport_name": sport_name}
-
-            logger.info(f"<post> Adding TAGS_SPORT relationship in Neo4j DB: {params}")
-
-            result, summary, keys = driver.execute_query(query, params)
-            success = summary.counters.relationships_created > 0
-            if success:
-                logger.info(f"<post> TAGS_SPORT relationship added in Neo4j DB: {post_id} -> {sport_name}")
-            else:
-                logger.info(f"<post> Failed to add TAGS_SPORT relationship in Neo4j DB: {post_id} -> {sport_name}")
-            return success
-        except Exception as e:
-            logger.error(f"<post> Error adding TAGS_SPORT relationship in Neo4j DB: {e}")
-            raise e
-        finally:
-            if driver:
-                driver.close()
-
-    def tag_user(self, post_id: str, username: str) -> bool:
-        """Tag a user in a post by creating a TAGS_USER relationship."""
-        driver = None
-        try:
-            driver = self.connector.connect()
-
-            query = """
-            MATCH (p:Post)
-            WHERE elementId(p) = $post_id
-            MATCH (u:User {username: $username})
-            CREATE (p)-[:TAGS_USER]->(u)
-            RETURN p, u
-            """
-            params = {"post_id": post_id, "username": username}
-
-            logger.info(f"<post> Adding TAGS_USER relationship in Neo4j DB: {params}")
-
-            result, summary, keys = driver.execute_query(query, params)
-            success = summary.counters.relationships_created > 0
-            if success:
-                logger.info(f"<post> TAGS_USER relationship added in Neo4j DB: {post_id} -> {username}")
-            else:
-                logger.info(f"<post> Failed to add TAGS_USER relationship in Neo4j DB: {post_id} -> {username}")
-            return success
-        except Exception as e:
-            logger.error(f"<post> Error adding TAGS_USER relationship in Neo4j DB: {e}")
-            raise e
-        finally:
-            if driver:
-                driver.close()
     
     def _get_user_username_mentions(self, event_name_mention: str):
         """Get list of username(s) linked to event via JOINED"""
@@ -466,12 +348,108 @@ class Post:
 
             result, summary, keys = driver.execute_query(query, params)
 
-            if result:  
-                sport_name_mention = result[0]['sport_name_mention']
+            if result:
+                sport_name_mention = result[0]["sport_name_mention"]
                 logger.info(f"<post> Sport name mentions found in event: {sport_name_mention}")
                 return sport_name_mention
         except Exception as e:
             logger.error(f"<post> Error getting sport name mentions from event: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
+
+    def _create_about_event(self, post_id: str, event_name: str) -> bool:
+        """Create (Post)-[:ABOUT]->(Event). Returns True if successful."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+            query = """
+            MATCH (p:Post)
+            WHERE elementId(p) = $post_id
+            MATCH (e:Event {event_name: $event_name})
+            CREATE (p)-[:ABOUT_EVENT]->(e)
+            RETURN p, e
+            """
+            result, summary, _ = driver.execute_query(query, {"post_id": post_id, "event_name": event_name})
+            success = summary.counters.relationships_created > 0
+            if success:
+                logger.info(f"<post> ABOUT_EVENT relationship created: post -> {event_name}")
+            return success
+        except Exception as e:
+            logger.error(f"<post> Error creating ABOUT_EVENT relationship: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
+
+    def _create_about_field(self, post_id: str, field_name: str) -> bool:
+        """Create (Post)-[:ABOUT]->(Field). Returns True if successful."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+            query = """
+            MATCH (p:Post)
+            WHERE elementId(p) = $post_id
+            MATCH (f:Field {field_name: $field_name})
+            CREATE (p)-[:ABOUT_FIELD]->(f)
+            RETURN p, f
+            """
+            result, summary, _ = driver.execute_query(query, {"post_id": post_id, "field_name": field_name})
+            success = summary.counters.relationships_created > 0
+            if success:
+                logger.info(f"<post> ABOUT_FIELD relationship created: post -> {field_name}")
+            return success
+        except Exception as e:
+            logger.error(f"<post> Error creating ABOUT_FIELD relationship: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
+
+    def _create_about_sport(self, post_id: str, sport_name: str) -> bool:
+        """Create (Post)-[:ABOUT]->(Sport). Returns True if successful."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+            query = """
+            MATCH (p:Post)
+            WHERE elementId(p) = $post_id
+            MATCH (s:Sport {sport_name: $sport_name})
+            CREATE (p)-[:ABOUT_SPORT]->(s)
+            RETURN p, s
+            """
+            result, summary, _ = driver.execute_query(query, {"post_id": post_id, "sport_name": sport_name})
+            success = summary.counters.relationships_created > 0
+            if success:
+                logger.info(f"<post> ABOUT_SPORT relationship created: post -> {sport_name}")
+            return success
+        except Exception as e:
+            logger.error(f"<post> Error creating ABOUT_SPORT relationship: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
+
+    def _create_mentions_user(self, post_id: str, username: str) -> bool:
+        """Create (Post)-[:MENTIONS_USER]->(User). Returns True if successful."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+            query = """
+            MATCH (p:Post)
+            WHERE elementId(p) = $post_id
+            MATCH (u:User {username: $username})
+            CREATE (p)-[:MENTIONS_USER]->(u)
+            RETURN p, u
+            """
+            result, summary, _ = driver.execute_query(query, {"post_id": post_id, "username": username})
+            success = summary.counters.relationships_created > 0
+            if success:
+                logger.info(f"<post> MENTIONS_USER relationship created: post -> {username}")
+            return success
+        except Exception as e:
+            logger.error(f"<post> Error creating MENTIONS_USER relationship: {e}")
             raise e
         finally:
             if driver:
