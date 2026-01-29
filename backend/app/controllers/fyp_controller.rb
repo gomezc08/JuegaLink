@@ -138,6 +138,9 @@ class FypController < ApplicationController
     else
       @follow_requests = []
     end
+
+    events_result = MlApiService.get_events_joined_by_user(username: current_user['username'])
+    @joined_events = (events_result && events_result['events'].is_a?(Array)) ? events_result['events'] : []
   end
 
   def accept_follow_request

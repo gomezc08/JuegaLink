@@ -1,4 +1,5 @@
 from ..connector import Connector
+from datetime import datetime
 import logging
 
 logging.basicConfig(
@@ -7,22 +8,54 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
 class Event:
     def __init__(self):
         self.connector = Connector()
 
+    def _serialize_event(self, d):
+        """Convert event dict to JSON-serializable form (datetime/Neo4j temporal -> string)."""
+        if d is None:
+            return None
+        out = {}
+        for k, v in d.items():
+            if isinstance(v, datetime):
+                out[k] = v.isoformat()
+            elif hasattr(v, "iso_format"):
+                # Neo4j driver temporal types (e.g. neo4j.time.DateTime)
+                out[k] = v.iso_format()
+            elif hasattr(v, "isoformat") and callable(getattr(v, "isoformat")):
+                out[k] = v.isoformat()
+            elif isinstance(v, dict):
+                out[k] = self._serialize_event(v)
+            elif isinstance(v, list):
+                def _serialize_value(x):
+                    if isinstance(x, dict):
+                        return self._serialize_event(x)
+                    if hasattr(x, "iso_format"):
+                        return x.iso_format()
+                    if hasattr(x, "isoformat") and callable(getattr(x, "isoformat")):
+                        return x.isoformat()
+                    return x
+                out[k] = [_serialize_value(x) for x in v]
+            else:
+                out[k] = v
+        return out
+
     def create_event(self, event_name: str, description: str, date_time: str, max_players: int, current_players: int = 0):
-        """Create a new event in Neo4j database. Returns event data."""
+        """Create a new event in Neo4j database. Returns event data. date_time stored as string."""
         driver = None
         try:
             driver = self.connector.connect()
+            # Keep date_time as string for storage and JSON
+            date_time_str = str(date_time) if date_time is not None else None
 
             query = """
             CREATE(e:Event{
-                event_name: $event_name, 
-                description: $description, 
-                date_time: $date_time, 
-                max_players: $max_players, 
+                event_name: $event_name,
+                description: $description,
+                date_time: $date_time,
+                max_players: $max_players,
                 current_players: $current_players
             })
             RETURN e
@@ -30,7 +63,7 @@ class Event:
             params = {
                 "event_name": event_name,
                 "description": description,
-                "date_time": date_time,
+                "date_time": date_time_str,
                 "max_players": max_players,
                 "current_players": current_players
             }
@@ -42,7 +75,7 @@ class Event:
             if result:
                 event_data = dict(result[0]['e'])
                 logger.info(f"<event> Event added to Neo4j DB: {event_data}")
-                return event_data
+                return self._serialize_event(event_data)
             return None
         except Exception as e:
             logger.error(f"<event> Error adding event to Neo4j DB: {e}")
@@ -72,7 +105,7 @@ class Event:
             if result:
                 event_data = dict(result[0]['e'])
                 logger.info(f"<event> Event found in Neo4j DB: {event_data}")
-                return event_data
+                return self._serialize_event(event_data)
             logger.info(f"<event> Event not found in Neo4j DB: {event_name}")
             return None
         except Exception as e:
@@ -98,11 +131,39 @@ class Event:
 
             result, summary, keys = driver.execute_query(query)
 
-            events = [dict(record['e']) for record in result]
+            events = [self._serialize_event(dict(record['e'])) for record in result]
             logger.info(f"<event> Found {len(events)} events in Neo4j DB")
             return events
         except Exception as e:
             logger.error(f"<event> Error getting all events from Neo4j DB: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
+    
+    def get_all_events_by_user(self, username: str):
+        """Get all events by user. Returns list of event dicts."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+
+            query = """
+            MATCH (u:User {username: $username})-[:JOINED]->(e:Event)
+            RETURN e
+            """
+            params = {
+                "username": username
+            }
+
+            logger.info(f"<event> Getting all events by user: {username} from Neo4j DB")
+
+            result, summary, keys = driver.execute_query(query, params)
+
+            events = [self._serialize_event(dict(record['e'])) for record in result]
+            logger.info(f"<event> Found {len(events)} events by user: {username} in Neo4j DB")
+            return events
+        except Exception as e:
+            logger.error(f"<event> Error getting all events by user: {username} from Neo4j DB: {e}")
             raise e
         finally:
             if driver:
@@ -123,7 +184,7 @@ class Event:
                 params["description"] = description
             if date_time is not None:
                 updates.append("e.date_time = $date_time")
-                params["date_time"] = date_time
+                params["date_time"] = str(date_time)
             if max_players is not None:
                 updates.append("e.max_players = $max_players")
                 params["max_players"] = max_players
@@ -147,7 +208,7 @@ class Event:
             if result:
                 event_data = dict(result[0]['e'])
                 logger.info(f"<event> Event updated in Neo4j DB: {event_data}")
-                return event_data
+                return self._serialize_event(event_data)
             return None
         except Exception as e:
             logger.error(f"<event> Error updating event in Neo4j DB: {e}")

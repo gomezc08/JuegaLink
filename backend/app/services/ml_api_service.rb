@@ -178,6 +178,15 @@ class MlApiService
       handle_response(response)
     end
 
+    def get_events_joined_by_user(username:)
+      uri = URI("#{BASE_URL}/events/all-by-user")
+      http = Net::HTTP.new(uri.host, uri.port)
+      request = Net::HTTP::Post.new(uri.path, 'Content-Type' => 'application/json')
+      request.body = { username: username }.to_json
+      response = http.request(request)
+      handle_response(response)
+    end
+
     def create_event(event_name:, description:, date_time:, max_players:)
       uri = URI("#{BASE_URL}/events/create")
       http = Net::HTTP.new(uri.host, uri.port)
