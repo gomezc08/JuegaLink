@@ -86,46 +86,27 @@ def get_event():
         return jsonify({"error": str(e)}), 500
 
 # Get all events route.
-@event_bp.route('/events/all', methods=['GET'])
-def get_all_events():
-    """Get all events"""
+@event_bp.route('/search/events', methods=['GET'])
+def search_events():
+    """Search for events by name"""
     try:
-        logger.info("<ml_service_run> Getting all events")
-        events = event_service.get_all_events()
+        query = request.args.get('q', '')
+        if not query:
+            return jsonify({
+                "events": [],
+                "count": 0
+            }), 200
         
-        logger.info(f"<ml_service_run> Found {len(events)} events")
+        events = event_service.search_events(query)
+        
+        logger.info(f"<ml_service_run> Found {len(events)} events matching query: {query}")
         return jsonify({
-            "message": "Events retrieved successfully",
+            "message": "Events searched successfully",
             "events": events,
             "count": len(events)
         }), 200
     except Exception as e:
-        logger.error(f"<ml_service_run> Error getting all events: {str(e)}")
-        return jsonify({"error": str(e)}), 500
-
-# Get all events by user route.
-@event_bp.route('/events/all-by-user', methods=['POST'])
-def get_all_events_by_user():
-    """Get all events by user"""
-    try:
-        data = request.get_json()
-        
-        # Validate required fields
-        if 'username' not in data:
-            return jsonify({"error": "Missing required field: username"}), 400
-        
-        # Get all events by user
-        logger.info(f"<ml_service_run> Getting all events by user: {data['username']}")
-        events = event_service.get_all_events_by_user(username=data['username'])
-        
-        logger.info(f"<ml_service_run> Found {len(events)} events")
-        return jsonify({
-            "message": "Events retrieved successfully",
-            "events": events,
-            "count": len(events)
-        }), 200
-    except Exception as e:
-        logger.error(f"<ml_service_run> Error getting all events: {str(e)}")
+        logger.error(f"<ml_service_run> Error searching events: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 # Update event route.

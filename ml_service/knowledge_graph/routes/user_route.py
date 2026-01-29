@@ -152,6 +152,26 @@ def delete_user():
         logger.error(f"<ml_service_run> Error deleting user: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+@user_bp.route('/search/users', methods=['GET'])
+def search_users():
+    """Search for users by username"""
+    try:
+        query = request.args.get('q', '')
+        if not query:
+            return jsonify({
+                "users": [],
+                "count": 0
+            }), 200
+        
+        users = user_service.search_users(query)
+        return jsonify({
+            "users": users,
+            "count": len(users)
+        }), 200
+    except Exception as e:
+        logger.error(f"<ml_service_run> Error searching users: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
 # User follows user route.
 @user_bp.route('/users/follow', methods=['POST'])
 def follow_user():

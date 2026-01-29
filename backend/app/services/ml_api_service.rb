@@ -73,8 +73,8 @@ class MlApiService
       handle_response(response)
     end
 
-    def search_fields(query:)
-      uri = URI("#{BASE_URL}/search/fields")
+    def search_events(query:)
+      uri = URI("#{BASE_URL}/search/events")
       uri.query = URI.encode_www_form(q: query)
       http = Net::HTTP.new(uri.host, uri.port)
       request = Net::HTTP::Get.new(uri.path + '?' + uri.query, 'Content-Type' => 'application/json')

@@ -54,9 +54,9 @@ class FypController < ApplicationController
         result = MlApiService.search_users(query: @query)
         @results = result['users'] || []
         @count = result['count'] || 0
-      elsif @filter == 'field'
-        result = MlApiService.search_fields(query: @query)
-        @results = result['fields'] || []
+      elsif @filter == 'event'
+        result = MlApiService.search_events(query: @query)
+        @results = result['events'] || []
         @count = result['count'] || 0
       end
     else

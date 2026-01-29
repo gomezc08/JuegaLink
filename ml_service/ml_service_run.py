@@ -120,26 +120,6 @@ def get_user(username):
         logger.error(f"<ml_service_run> Error getting user: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
-@app.route('/search/users', methods=['GET'])
-def search_users():
-    """Search for users by username"""
-    try:
-        query = request.args.get('q', '')
-        if not query:
-            return jsonify({
-                "users": [],
-                "count": 0
-            }), 200
-        
-        users = user_service.search_users(query)
-        return jsonify({
-            "users": users,
-            "count": len(users)
-        }), 200
-    except Exception as e:
-        logger.error(f"<ml_service_run> Error searching users: {str(e)}")
-        return jsonify({"error": str(e)}), 500
-
 if __name__ == '__main__':
     port = int(os.getenv('FLASK_PORT', 5000))
     logger.info(f"Starting ML Service on port {port}")
