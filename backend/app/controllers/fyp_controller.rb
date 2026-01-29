@@ -210,6 +210,21 @@ class FypController < ApplicationController
     end
   end
 
+  def create_event_post
+    result = MlApiService.create_event(
+      event_name: params[:event_name],
+      description: params[:description],
+      date_time: params[:date_time],
+      max_players: params[:max_players]
+    )
+    
+    if result['event']
+      redirect_to fyp_index_path, notice: "Event created successfully!"
+    else
+      redirect_to fyp_create_event_path, alert: result[:error] || "Failed to create event"
+    end
+  end
+
   def create_event
   end
   

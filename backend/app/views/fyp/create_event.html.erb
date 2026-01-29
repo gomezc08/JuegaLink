@@ -6,7 +6,7 @@
           <h2 class="mb-0">Create Event</h2>
         </div>
         <div class="card-body">
-          <%= form_with url: fyp_create_event_path, method: :post, local: true, class: "profile-edit-form" do |form| %>
+          <%= form_with url: fyp_create_event_post_path, method: :post, local: true, class: "profile-edit-form" do |form| %>
             <div class="mb-3">
               <%= form.label :event_name, "Event name", class: "form-label" %>
               <%= form.text_field :event_name, class: "form-control", placeholder: "e.g. Pickup Game at the Park", required: true %>

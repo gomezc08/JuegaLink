@@ -39,7 +39,7 @@ def create_event():
             description=data['description'],
             date_time=data['date_time'],
             max_players=data['max_players'],
-            current_players=data.get('current_players', 0)
+            current_players=data.get('current_players', 1)
         )
         
         if event:
