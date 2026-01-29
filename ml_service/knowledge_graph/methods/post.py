@@ -24,7 +24,6 @@ class Post:
         # grab sport_name from event.
         sport_name_mention = self._get_sport_name_mention(event_name_mention)
 
-
         driver = None
         try:
             driver = self.connector.connect()
@@ -39,7 +38,7 @@ class Post:
                 user_username_mentions: $user_username_mentions,
                 created_at: $created_at
             })
-            RETURN p, id(p) AS post_id
+            RETURN p, elementId(p) AS post_id
             """
             params = {
                 "title": title,
@@ -68,15 +67,15 @@ class Post:
             if driver:
                 driver.close()
     
-    def delete_post(self, post_id: int) -> bool:
-        """Delete a post by internal Neo4j id. Returns True if successful."""
+    def delete_post(self, post_id: str) -> bool:
+        """Delete a post by Neo4j elementId. Returns True if successful."""
         driver = None
         try:
             driver = self.connector.connect()
 
             query = """
             MATCH (p:Post)
-            WHERE id(p) = $post_id
+            WHERE elementId(p) = $post_id
             DETACH DELETE p
             """
             params = {"post_id": post_id}
@@ -98,16 +97,16 @@ class Post:
             if driver:
                 driver.close()
 
-    def get_post(self, post_id: int):
-        """Get a post by internal Neo4j id. Returns post data dict (including post_id) or None."""
+    def get_post(self, post_id: str):
+        """Get a post by Neo4j elementId. Returns post data dict (including post_id) or None."""
         driver = None
         try:
             driver = self.connector.connect()
 
             query = """
             MATCH (p:Post)
-            WHERE id(p) = $post_id
-            RETURN p, id(p) AS post_id
+            WHERE elementId(p) = $post_id
+            RETURN p, elementId(p) AS post_id
             """
             params = {"post_id": post_id}
 
@@ -130,7 +129,7 @@ class Post:
             if driver:
                 driver.close()
 
-    def update_post(self, post_id: int, title: str = None, content: str = None):
+    def update_post(self, post_id: str, title: str = None, content: str = None):
         """Update post title/content. Returns updated post data dict or None."""
         driver = None
         try:
@@ -151,9 +150,9 @@ class Post:
 
             query = f"""
             MATCH (p:Post)
-            WHERE id(p) = $post_id
+            WHERE elementId(p) = $post_id
             SET {', '.join(updates)}
-            RETURN p, id(p) AS post_id
+            RETURN p, elementId(p) AS post_id
             """
 
             logger.info(f"<post> Updating post in Neo4j DB: {params}")
@@ -174,7 +173,7 @@ class Post:
             if driver:
                 driver.close()
     
-    def like_post(self, username: str, post_id: int) -> bool:
+    def like_post(self, username: str, post_id: str) -> bool:
         """Create a LIKED relationship between user and post. Returns True if successful."""
         driver = None
         try:
@@ -183,7 +182,7 @@ class Post:
             query = """
             MATCH (u:User {username: $username})
             MATCH (p:Post)
-            WHERE id(p) = $post_id
+            WHERE elementId(p) = $post_id
             CREATE (u)-[:LIKED]->(p)
             RETURN u, p
             """
@@ -205,7 +204,7 @@ class Post:
             if driver:
                 driver.close()
 
-    def unlike_post(self, username: str, post_id: int) -> bool:
+    def unlike_post(self, username: str, post_id: str) -> bool:
         """Delete a LIKED relationship between user and post. Returns True if successful."""
         driver = None
         try:
@@ -213,7 +212,7 @@ class Post:
 
             query = """
             MATCH (u:User {username: $username})-[r:LIKED]->(p:Post)
-            WHERE id(p) = $post_id
+            WHERE elementId(p) = $post_id
             DELETE r
             """
             params = {"username": username, "post_id": post_id}
@@ -243,7 +242,7 @@ class Post:
             query = """
             MATCH (u:User {username: $username})
             MATCH (p:Post)
-            WHERE id(p) = $post_id
+            WHERE elementId(p) = $post_id
             CREATE (u)-[:COMMENTED {
                 content: $comment,
                 created_at: $created_at
@@ -273,7 +272,7 @@ class Post:
             if driver:
                 driver.close()
 
-    def tag_event(self, post_id: int, event_name: str) -> bool:
+    def tag_event(self, post_id: str, event_name: str) -> bool:
         """Tag an event in a post by creating a TAGS_EVENT relationship."""
         driver = None
         try:
@@ -281,7 +280,7 @@ class Post:
 
             query = """
             MATCH (p:Post)
-            WHERE id(p) = $post_id
+            WHERE elementId(p) = $post_id
             MATCH (e:Event {event_name: $event_name})
             CREATE (p)-[:TAGS_EVENT]->(e)
             RETURN p, e
@@ -304,7 +303,7 @@ class Post:
             if driver:
                 driver.close()
 
-    def tag_field(self, post_id: int, field_name: str) -> bool:
+    def tag_field(self, post_id: str, field_name: str) -> bool:
         """Tag a field in a post by creating a TAGS_FIELD relationship."""
         driver = None
         try:
@@ -312,7 +311,7 @@ class Post:
 
             query = """
             MATCH (p:Post)
-            WHERE id(p) = $post_id
+            WHERE elementId(p) = $post_id
             MATCH (f:Field {field_name: $field_name})
             CREATE (p)-[:TAGS_FIELD]->(f)
             RETURN p, f
@@ -335,7 +334,7 @@ class Post:
             if driver:
                 driver.close()
 
-    def tag_sport(self, post_id: int, sport_name: str) -> bool:
+    def tag_sport(self, post_id: str, sport_name: str) -> bool:
         """Tag a sport in a post by creating a TAGS_SPORT relationship."""
         driver = None
         try:
@@ -343,7 +342,7 @@ class Post:
 
             query = """
             MATCH (p:Post)
-            WHERE id(p) = $post_id
+            WHERE elementId(p) = $post_id
             MATCH (s:Sport {sport_name: $sport_name})
             CREATE (p)-[:TAGS_SPORT]->(s)
             RETURN p, s
@@ -366,7 +365,7 @@ class Post:
             if driver:
                 driver.close()
 
-    def tag_user(self, post_id: int, username: str) -> bool:
+    def tag_user(self, post_id: str, username: str) -> bool:
         """Tag a user in a post by creating a TAGS_USER relationship."""
         driver = None
         try:
@@ -374,7 +373,7 @@ class Post:
 
             query = """
             MATCH (p:Post)
-            WHERE id(p) = $post_id
+            WHERE elementId(p) = $post_id
             MATCH (u:User {username: $username})
             CREATE (p)-[:TAGS_USER]->(u)
             RETURN p, u
@@ -398,14 +397,15 @@ class Post:
                 driver.close()
     
     def _get_user_username_mentions(self, event_name_mention: str):
-        """Get list of username(s) from event."""
+        """Get list of username(s) linked to event via JOINED"""
         driver = None
         try:
             driver = self.connector.connect()
 
+            # Users can be linked via JOINED (event join)
             query = """
-            MATCH (u:User)-[:ATTENDING]->(e:Event {event_name: $event_name})
-            RETURN collect(u.username) AS user_username_mentions
+            MATCH (u:User)-[:JOINED]->(e:Event {event_name: $event_name})
+            RETURN collect(DISTINCT u.username) AS user_username_mentions
             """
             params = {"event_name": event_name_mention}
 
@@ -414,9 +414,10 @@ class Post:
             result, summary, keys = driver.execute_query(query, params)
 
             if result:
-                user_username_mentions = result[0]['user_username_mentions']
+                user_username_mentions = result[0]["user_username_mentions"]
                 logger.info(f"<post> User username mentions found in event: {user_username_mentions}")
-                return user_username_mentions
+                return user_username_mentions if user_username_mentions else []
+            return []
         except Exception as e:
             logger.error(f"<post> Error getting user username mentions from event: {e}")
             raise e
