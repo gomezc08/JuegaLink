@@ -9,6 +9,7 @@ from knowledge_graph.routes.user_route import user_bp
 from knowledge_graph.routes.sport_route import sport_bp
 from knowledge_graph.routes.event_route import event_bp
 from knowledge_graph.routes.field_route import field_bp
+from knowledge_graph.routes.post_route import post_bp
 from knowledge_graph.methods import User
 
 logging.basicConfig(
@@ -31,6 +32,7 @@ app.register_blueprint(user_bp)
 app.register_blueprint(sport_bp)
 app.register_blueprint(event_bp)
 app.register_blueprint(field_bp)
+app.register_blueprint(post_bp)
 
 # Health check endpoint
 @app.route('/health', methods=['GET'])
