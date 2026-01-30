@@ -13,7 +13,7 @@ class Event:
     def __init__(self):
         self.connector = Connector()
 
-    def create_event(self, event_name: str, description: str, date_time: str, max_players: int, current_players: int = 0):
+    def create_event(self, event_name: str, username: str, description: str, date_time: str, max_players: int, current_players: int = 0):
         """Create a new event in Neo4j database. Returns event data. date_time stored as string."""
         driver = None
         try:
@@ -29,10 +29,14 @@ class Event:
                 max_players: $max_players,
                 current_players: $current_players
             })
+            with e
+            MATCH(u:User {username: $username})
+            CREATE(e)-[:HOSTED_BY]->(u)
             RETURN e
             """
             params = {
                 "event_name": event_name,
+                "username": username,
                 "description": description,
                 "date_time": date_time_str,
                 "max_players": max_players,

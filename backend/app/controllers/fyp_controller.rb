@@ -281,6 +281,7 @@ class FypController < ApplicationController
   def create_event_post
     result = MlApiService.create_event(
       event_name: params[:event_name],
+      username: current_user['username'],
       description: params[:description],
       date_time: params[:date_time],
       max_players: params[:max_players]

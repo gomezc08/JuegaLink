@@ -27,7 +27,7 @@ def create_event():
         data = request.get_json()
         
         # Validate required fields
-        required_fields = ['event_name', 'description', 'date_time', 'max_players']
+        required_fields = ['event_name', 'username','description', 'date_time', 'max_players']
         for field in required_fields:
             if field not in data:
                 return jsonify({"error": f"Missing required field: {field}"}), 400
@@ -36,6 +36,7 @@ def create_event():
         logger.info(f"<ml_service_run> Creating event: {data['event_name']}")
         event = event_service.create_event(
             event_name=data['event_name'],
+            username=data['username'],
             description=data['description'],
             date_time=data['date_time'],
             max_players=data['max_players'],
