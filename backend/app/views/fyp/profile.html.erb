@@ -70,7 +70,41 @@
         </div>
       </div>
     </div>
-    
+
+    <hr class="my-4">
+
+    <div class="profile-posts-section">
+      <div class="d-flex justify-content-center mb-3">
+        <%= link_to fyp_create_post_path, class: "btn btn-outline-secondary btn-sm" do %>
+          <i class="bi bi-plus-lg"></i> New Post
+        <% end %>
+      </div>
+
+      <% if @posts && @posts.any? %>
+        <div class="row g-1">
+          <% @posts.each do |post| %>
+            <div class="col-4">
+              <%= link_to fyp_post_path(id: post['id']), class: "profile-post-link" do %>
+                <div class="profile-post-tile">
+                  <% if post['image_url'].present? %>
+                    <img src="<%= post['image_url'] %>" alt="Post" class="profile-post-img">
+                  <% else %>
+                    <div class="profile-post-placeholder">
+                      <p class="profile-post-placeholder-text"><%= truncate(post['content'] || '', length: 60) %></p>
+                    </div>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="text-center text-muted py-4">
+          <p>No posts yet.</p>
+        </div>
+      <% end %>
+    </div>
+
   <% else %>
     <div class="alert alert-warning">
       Please log in to view your profile.
