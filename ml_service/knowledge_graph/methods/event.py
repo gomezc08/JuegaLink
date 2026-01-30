@@ -231,7 +231,7 @@ class Event:
 
             query = """
             MATCH(e:Event{event_name: $event_name})
-            DELETE e
+            DETACH DELETE e
             RETURN e
             """
             params = {

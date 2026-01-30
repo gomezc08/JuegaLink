@@ -119,9 +119,9 @@ class FypController < ApplicationController
 
     result = MlApiService.delete_event(event_name: event_name)
     if result['message']
-      redirect_to fyp_event_page_path(event_name: event_name), notice: "Event deleted successfully!"
+      redirect_to fyp_notifications_path, notice: "Event deleted successfully!"
     else
-      redirect_to fyp_event_page_path(event_name: event_name), alert: result[:error] || result['error'] || "Failed to delete event"
+      redirect_to fyp_notifications_path(event_name: event_name), alert: result[:error] || result['error'] || "Failed to delete event"
     end
   end
   
