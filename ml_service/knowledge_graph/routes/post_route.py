@@ -50,12 +50,15 @@ def create_post():
         return jsonify({"error": str(e)}), 500
 
 # User deletes a post.
-@post_bp.route('/posts/delete', methods=['POST'])
+@post_bp.route('/posts/delete', methods=['DELETE'])
 def delete_post():
     """Delete a post"""
     try:
-        data = request.get_json()
-        
+        # Accept JSON body; allow parsing even if Content-Type was not set by client
+        data = request.get_json(force=True, silent=True)
+        if not data:
+            return jsonify({"error": "Request body must be JSON with post_id"}), 400
+
         # Validate required fields
         required_fields = ['post_id']
         for field in required_fields:
@@ -152,16 +155,18 @@ def get_user_posts():
         if 'username' not in data:
             return jsonify({"error": "Missing required field: username"}), 400
         
-        # Get post
+        # Get posts
         logger.info(f"<ml_service_run> Getting all posts for user: {data['username']}")
         posts = post_service.get_user_posts(username=data['username'])
         
         if posts:
             logger.info(f"<ml_service_run> Posts found: {posts}")
-            return jsonify({
-                "message": "Posts found successfully",
-                "posts": posts
-            }), 200
+        else:
+            posts = []
+        return jsonify({
+            "message": "Posts found successfully",
+            "posts": posts
+        }), 200
     except Exception as e:
         logger.error(f"<ml_service_run> Error getting user posts: {str(e)}")
         return jsonify({"error": str(e)}), 500

@@ -24,6 +24,13 @@
             <% end %>
           </div>
 
+        <div class="card-footer text-center" style="background: none; border-top: 1px solid #efefef; padding: 12px 16px;">
+            <%= form_with url: fyp_delete_post_path, method: :delete, local: true, class: "d-inline" do |form| %>
+              <%= form.hidden_field :delete_post_id, value: @post['post_id'] %>
+              <%= form.submit "Delete Post", class: "btn btn-outline-danger btn-sm w-100" %>
+            <% end %>
+        </div>
+
         </div>
       </div>
     </div>

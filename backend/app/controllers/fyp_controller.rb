@@ -12,9 +12,9 @@ class FypController < ApplicationController
       @following_count = 0
     end
 
-    @posts = MlApiService.get_user_posts(username: @user['username'])
-    if @posts && @posts['posts'].is_a?(Array)
-      @posts = @posts['posts']
+    result = MlApiService.get_user_posts(username: @user['username'])
+    if result && result['posts'].is_a?(Array)
+      @posts = result['posts']
     else
       @posts = []
     end
@@ -93,6 +93,15 @@ class FypController < ApplicationController
       redirect_to fyp_profile_path, notice: "Post created successfully!"
     else
       redirect_to fyp_profile_path, alert: result[:error] || "Failed to create post"
+    end
+  end
+
+  def delete_post
+    result = MlApiService.delete_post(id: params[:delete_post_id])
+    if result['message']
+      redirect_to fyp_profile_path, notice: "Post deleted successfully!"
+    else
+      redirect_to fyp_profile_path, alert: result[:error] || "Failed to delete post"
     end
   end
   

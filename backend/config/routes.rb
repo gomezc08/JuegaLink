@@ -6,6 +6,7 @@ Rails.application.routes.draw do
   get "fyp/edit_profile"
   get "fyp/create_post", to: "fyp#create_post", as: :fyp_create_post
   post "fyp/create_post", to: "fyp#create_post_post", as: :fyp_create_post_post
+  delete "fyp/delete_post", to: "fyp#delete_post", as: :fyp_delete_post
   get "fyp/post/:id", to: "fyp#post", as: :fyp_post
   patch "fyp/profile", to: "fyp#update_profile"
   put "fyp/profile", to: "fyp#update_profile"

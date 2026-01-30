@@ -212,6 +212,18 @@ class MlApiService
       response = http.request(request)
       handle_response(response)
     end
+
+    def delete_post(id:)
+      uri = URI("#{BASE_URL}/posts/delete")
+      http = Net::HTTP.new(uri.host, uri.port)
+      body = { post_id: id }.to_json
+      request = Net::HTTP::Delete.new(uri.request_uri)
+      request['Content-Type'] = 'application/json'
+      request['Content-Length'] = body.bytesize.to_s
+      request.body = body
+      response = http.request(request)
+      handle_response(response)
+    end
     
     def get_user_posts(username:)
       uri = URI("#{BASE_URL}/posts/get")
