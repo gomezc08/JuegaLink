@@ -24,6 +24,7 @@ class Event:
             query = """
             CREATE(e:Event{
                 event_name: $event_name,
+                host: $username,
                 description: $description,
                 date_time: $date_time,
                 max_players: $max_players,

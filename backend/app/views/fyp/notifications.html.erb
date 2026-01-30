@@ -56,7 +56,7 @@
           <% @joined_events.each do |event| %>
             <div class="notification-card">
               <div class="notification-avatar event-avatar">
-                <%= event['event_name']&.first&.upcase || 'E' %>
+                <%= event['host']&.first&.upcase || 'E' %>
               </div>
               <div class="notification-info flex-grow-1">
                 <h4 class="notification-username mb-1">
@@ -92,7 +92,7 @@
           <% @hosted_events.each do |event| %>
             <div class="notification-card">
               <div class="notification-avatar event-avatar">
-                <%= event['event_name']&.first&.upcase || 'E' %>
+                <%= event['host']&.first&.upcase || 'E' %>
               </div>
               <div class="notification-info flex-grow-1">
                 <h4 class="notification-username mb-1">
