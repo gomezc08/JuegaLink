@@ -63,6 +63,17 @@ class MlApiService
       handle_response(response)
     end
 
+    def get_event(event_name:)
+      uri = URI("#{BASE_URL}/events/get")
+      http = Net::HTTP.new(uri.host, uri.port)
+      request = Net::HTTP::Post.new(uri.path, 'Content-Type' => 'application/json')
+      request.body = {
+        event_name: event_name
+      }.to_json
+      response = http.request(request)
+      handle_response(response)
+    end
+
     def search_users(query:)
       uri = URI("#{BASE_URL}/search/users")
       uri.query = URI.encode_www_form(q: query)
@@ -179,10 +190,13 @@ class MlApiService
     end
 
     def get_events_joined_by_user(username:)
-      uri = URI("#{BASE_URL}/events/all-by-user")
+      uri = URI("#{BASE_URL}/events/list-joined-by-user")
       http = Net::HTTP.new(uri.host, uri.port)
-      request = Net::HTTP::Post.new(uri.path, 'Content-Type' => 'application/json')
-      request.body = { username: username }.to_json
+      body = { username: username }.to_json
+      request = Net::HTTP::Post.new(uri.request_uri)
+      request['Content-Type'] = 'application/json'
+      request['Content-Length'] = body.bytesize.to_s
+      request.body = body
       response = http.request(request)
       handle_response(response)
     end
@@ -197,6 +211,30 @@ class MlApiService
         date_time: date_time,
         max_players: max_players,
       }.to_json
+      response = http.request(request)
+      handle_response(response)
+    end
+
+    def join_event(username:, event_name:)
+      uri = URI("#{BASE_URL}/events/joined-by-user")
+      http = Net::HTTP.new(uri.host, uri.port)
+      body = { username: username, event_name: event_name }.to_json
+      request = Net::HTTP::Post.new(uri.request_uri)
+      request['Content-Type'] = 'application/json'
+      request['Content-Length'] = body.bytesize.to_s
+      request.body = body
+      response = http.request(request)
+      handle_response(response)
+    end
+
+    def unjoin_event(username:, event_name:)
+      uri = URI("#{BASE_URL}/events/left-by-user")
+      http = Net::HTTP.new(uri.host, uri.port)
+      body = { username: username, event_name: event_name }.to_json
+      request = Net::HTTP::Post.new(uri.request_uri)
+      request['Content-Type'] = 'application/json'
+      request['Content-Length'] = body.bytesize.to_s
+      request.body = body
       response = http.request(request)
       handle_response(response)
     end

@@ -63,7 +63,7 @@ class FypController < ApplicationController
       @count = 0
     end
   end
-
+  
   def user_page
     @username = params[:username]
     result = MlApiService.get_user(username: @username)
@@ -80,6 +80,71 @@ class FypController < ApplicationController
       end
     else
       redirect_to fyp_search_path, alert: result[:error] || "User not found"
+    end
+  end
+
+  def event_page
+    @event_name = params[:event_name]
+    @is_joined = false
+    if current_user && current_user['username']
+      joined_events = MlApiService.get_events_joined_by_user(username: current_user['username'])
+      if joined_events && joined_events['events'].is_a?(Array)
+        @is_joined = joined_events['events'].any? { |e| e['event_name'] == @event_name }
+      end
+    end
+    result = MlApiService.get_event(event_name: @event_name)
+    if result['event']
+      @event = result['event']
+    else
+      redirect_to fyp_search_path, alert: result[:error] || "Event not found"
+    end
+  end
+
+  def join_event
+    unless current_user && current_user['username']
+      redirect_to home_login_path, alert: "You must be logged in to join events"
+      return
+    end
+
+    event_name = params[:event_name]
+    unless event_name.present?
+      redirect_to fyp_search_path, alert: "Invalid event"
+      return
+    end
+
+    result = MlApiService.join_event(
+      username: current_user['username'],
+      event_name: event_name
+    )
+
+    if result['message']
+      redirect_to fyp_event_page_path(event_name: event_name), notice: "You joined the event!"
+    else
+      redirect_to fyp_event_page_path(event_name: event_name), alert: result[:error] || result['error'] || "Failed to join event"
+    end
+  end
+
+  def unjoin_event
+    unless current_user && current_user['username']
+      redirect_to home_login_path, alert: "You must be logged in to leave events"
+      return
+    end
+
+    event_name = params[:event_name]
+    unless event_name.present?
+      redirect_to fyp_search_path, alert: "Invalid event"
+      return
+    end
+
+    result = MlApiService.unjoin_event(
+      username: current_user['username'],
+      event_name: event_name
+    )
+
+    if result['message']
+      redirect_to fyp_event_page_path(event_name: event_name), notice: "You left the event."
+    else
+      redirect_to fyp_event_page_path(event_name: event_name), alert: result[:error] || result['error'] || "Failed to leave event"
     end
   end
 

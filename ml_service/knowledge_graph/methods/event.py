@@ -318,7 +318,41 @@ class Event:
         finally:
             if driver:
                 driver.close()
-    
+
+    def user_left_event(self, event_name: str, username: str):
+        """Remove JOINED relationship and decrement event current_players. Returns True if successful."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+
+            query = """
+            MATCH (u:User {username: $username})-[r:JOINED]->(e:Event {event_name: $event_name})
+            DELETE r
+            WITH e
+            SET e.current_players = CASE WHEN e.current_players > 0 THEN e.current_players - 1 ELSE 0 END
+            RETURN e
+            """
+            params = {
+                "event_name": event_name,
+                "username": username,
+            }
+
+            logger.info(f"<event> Removing JOINED relationship in Neo4j DB: {params}")
+
+            result, summary, keys = driver.execute_query(query, params)
+            success = summary.counters.relationships_deleted > 0
+            if success:
+                logger.info(f"<event> JOINED relationship removed: {username} -X-> {event_name}")
+            else:
+                logger.info(f"<event> Leave failed (relationship not found): {username} -> {event_name}")
+            return success
+        except Exception as e:
+            logger.error(f"<event> Error removing JOINED relationship in Neo4j DB: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
+
     def _serialize_event(self, d):
         """Convert event dict to JSON-serializable form (datetime/Neo4j temporal -> string)."""
         if d is None:

@@ -1,0 +1,50 @@
+<div class="profile-container">
+  <% if @event %>
+    <div class="card edit-profile-card">
+      <div class="card-header edit-profile-header">
+        <h2 class="mb-0"><%= @event['event_name'] %></h2>
+      </div>
+      <div class="card-body">
+        <% if @event['date_time'].present? %>
+          <div class="mb-3">
+            <span class="stat-label">Date & Time</span>
+            <p class="mb-0 mt-1">
+              <%= @event['date_time'].is_a?(String) ? (Time.parse(@event['date_time']).strftime('%B %d, %Y at %l:%M %p') rescue @event['date_time']) : @event['date_time'].strftime('%B %d, %Y at %l:%M %p') %>
+            </p>
+          </div>
+        <% end %>
+
+        <% if @event['description'].present? %>
+          <div class="mb-3">
+            <span class="stat-label">Description</span>
+            <p class="mb-0 mt-1"><%= @event['description'] %></p>
+          </div>
+        <% end %>
+
+        <div class="mb-4">
+          <span class="stat-label">Players</span>
+          <p class="mb-0 mt-1"><%= @event['current_players'] || 0 %> / <%= @event['max_players'] || 0 %> joined</p>
+        </div>
+
+        <% if current_user %>
+          <% if @is_joined %>
+            <%= form_with url: fyp_unjoin_event_path, method: :post, local: true do |form| %>
+              <%= form.hidden_field :event_name, value: @event['event_name'] %>
+              <%= form.submit "Unjoin Event", class: "btn btn-outline-secondary w-100" %>
+            <% end %>
+          <% else %>
+            <%= form_with url: fyp_join_event_path, method: :post, local: true do |form| %>
+              <%= form.hidden_field :event_name, value: @event['event_name'] %>
+              <%= form.submit "Join Event", class: "btn btn-primary w-100" %>
+            <% end %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+
+  <% else %>
+    <div class="alert alert-warning">
+      Event not found.
+    </div>
+  <% end %>
+</div>

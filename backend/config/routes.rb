@@ -9,6 +9,9 @@ Rails.application.routes.draw do
   get "fyp/search"
   root "home#index"
   get "fyp/user_page/:username", to: "fyp#user_page", as: :fyp_user_page
+  get "fyp/event_page/:event_name", to: "fyp#event_page", as: :fyp_event_page
+  post "fyp/join_event", to: "fyp#join_event", as: :fyp_join_event
+  post "fyp/unjoin_event", to: "fyp#unjoin_event", as: :fyp_unjoin_event
   post "fyp/follow", to: "fyp#follow", as: :fyp_follow
   post "fyp/unfollow", to: "fyp#unfollow", as: :fyp_unfollow
   post "fyp/accept_follow_request", to: "fyp#accept_follow_request", as: :fyp_accept_follow_request
