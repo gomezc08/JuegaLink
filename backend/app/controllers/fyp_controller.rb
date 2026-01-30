@@ -11,6 +11,13 @@ class FypController < ApplicationController
       @followers_count = 0
       @following_count = 0
     end
+
+    result = MlApiService.get_user_posts(username: @user['username'])
+    if result && result['posts'].is_a?(Array)
+      @posts = result['posts']
+    else
+      @posts = []
+    end
   end
 
   def edit_profile
@@ -44,6 +51,60 @@ class FypController < ApplicationController
     end
   end
 
+  def post
+    result = MlApiService.get_post(id: params[:id])
+    if result && result['post']
+      @post = result['post']
+    else
+      redirect_to fyp_profile_path, alert: (result && (result['error'] || result[:error])) || "Failed to get post"
+    end
+  end
+
+  def create_post
+    @events = []
+    if current_user && current_user['username']
+      hosted_events = MlApiService.get_events_hosted_by_user(username: current_user['username'])
+      joined_events = MlApiService.get_events_joined_by_user(username: current_user['username'])
+      if hosted_events && hosted_events['events'].is_a?(Array)
+        @events.concat(hosted_events['events'])
+      end
+      if joined_events && joined_events['events'].is_a?(Array)
+        @events.concat(joined_events['events'])
+      end
+    end
+    @events = @events.uniq { |e| e['event_name'] }
+  end
+
+  def create_post_post
+    @user = current_user
+    unless @user
+      redirect_to fyp_profile_path, alert: "You must be logged in to create a post"
+      return
+    end
+
+    result = MlApiService.create_post(
+      title: params[:title],
+      content: params[:content],
+      event_name_mention: params[:event_name_mention],
+      username: @user['username']
+    )
+
+    if result['post']
+      redirect_to fyp_profile_path, notice: "Post created successfully!"
+    else
+      redirect_to fyp_profile_path, alert: result[:error] || "Failed to create post"
+    end
+  end
+
+  def delete_post
+    result = MlApiService.delete_post(id: params[:delete_post_id])
+    if result['message']
+      redirect_to fyp_profile_path, notice: "Post deleted successfully!"
+    else
+      redirect_to fyp_profile_path, alert: result[:error] || "Failed to delete post"
+    end
+  end
+  
   def search
     @query = params[:q] || ''
     @filter = params[:filter] || 'user'

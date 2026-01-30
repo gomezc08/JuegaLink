@@ -70,7 +70,54 @@
         </div>
       </div>
     </div>
-    
+
+    <div class="profile-posts-section mt-4">
+      <div class="d-flex justify-content-center mb-3">
+        <%= link_to fyp_create_post_path, method: :get, class: "btn btn-outline-secondary btn-sm" do %>
+          <i class="bi bi-plus-lg"></i> New Post
+        <% end %>
+      </div>
+
+      <% if @posts && @posts.any? %>
+        <div class="row g-3">
+          <% @posts.each do |post| %>
+            <% post_id = post['post_id'] || post['id'] %>
+            <div class="col-md-4 col-sm-6">
+              <div class="card h-100" style="border-radius: 12px; border: 1px solid #e0e0e0; transition: transform 0.15s, box-shadow 0.15s; cursor: pointer;" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+                <% if post_id.present? %>
+                  <%= link_to fyp_post_path(post_id), style: "text-decoration: none; color: inherit;" do %>
+                    <div class="card-body d-flex flex-column" style="padding: 1.25rem;">
+                      <h5 class="card-title mb-2" style="font-weight: 600; font-size: 0.95rem;"><%= truncate(post['title'] || 'Untitled', length: 40) %></h5>
+                      <% if post['content'].present? %>
+                        <p class="card-text text-muted mb-3" style="font-size: 0.85rem; flex-grow: 1;"><%= truncate(post['content'], length: 80) %></p>
+                      <% end %>
+                      <% if post['event_name_mention'].present? %>
+                        <span class="badge" style="background-color: #e8f4f8; color: #1a7fa0; font-size: 0.75rem; align-self: flex-start;"><%= post['event_name_mention'] %></span>
+                      <% end %>
+                    </div>
+                  <% end %>
+                <% else %>
+                  <div class="card-body d-flex flex-column" style="padding: 1.25rem;">
+                    <h5 class="card-title mb-2" style="font-weight: 600; font-size: 0.95rem;"><%= truncate(post['title'] || 'Untitled', length: 40) %></h5>
+                    <% if post['content'].present? %>
+                      <p class="card-text text-muted mb-3" style="font-size: 0.85rem; flex-grow: 1;"><%= truncate(post['content'], length: 80) %></p>
+                    <% end %>
+                    <% if post['event_name_mention'].present? %>
+                      <span class="badge" style="background-color: #e8f4f8; color: #1a7fa0; font-size: 0.75rem; align-self: flex-start;"><%= post['event_name_mention'] %></span>
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="text-center text-muted py-4">
+          <p>No posts yet.</p>
+        </div>
+      <% end %>
+    </div>
+
   <% else %>
     <div class="alert alert-warning">
       Please log in to view your profile.
