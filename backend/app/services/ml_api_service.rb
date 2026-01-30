@@ -228,6 +228,17 @@ class MlApiService
       handle_response(response)
     end
 
+    def delete_event(event_name:)
+      uri = URI("#{BASE_URL}/events/delete")
+      http = Net::HTTP.new(uri.host, uri.port)
+      request = Net::HTTP::Delete.new(uri.path, 'Content-Type' => 'application/json')
+      request.body = {
+        event_name: event_name,
+      }.to_json
+      response = http.request(request)
+      handle_response(response)
+    end 
+
     def join_event(username:, event_name:)
       uri = URI("#{BASE_URL}/events/joined-by-user")
       http = Net::HTTP.new(uri.host, uri.port)

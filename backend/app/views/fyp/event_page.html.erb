@@ -32,6 +32,11 @@
               <%= form.hidden_field :event_name, value: @event['event_name'] %>
               <%= form.submit "Unjoin Event", class: "btn btn-outline-secondary w-100" %>
             <% end %>
+          <% elsif @is_host %>
+            <%= form_with url: fyp_delete_event_path, method: :delete, local: true do |form| %>
+              <%= form.hidden_field :event_name, value: @event['event_name'] %>
+              <%= form.submit "Delete Event", class: "btn btn-outline-danger w-100" %>
+            <% end %>
           <% else %>
             <%= form_with url: fyp_join_event_path, method: :post, local: true do |form| %>
               <%= form.hidden_field :event_name, value: @event['event_name'] %>
