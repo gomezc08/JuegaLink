@@ -119,8 +119,8 @@ class Event:
             if driver:
                 driver.close()
     
-    def get_all_events_by_user(self, username: str):
-        """Get all events by user. Returns list of event dicts."""
+    def get_all_events_joined_by_user(self, username: str):
+        """Get all events joined by user. Returns list of event dicts."""
         driver = None
         try:
             driver = self.connector.connect()
@@ -133,15 +133,43 @@ class Event:
                 "username": username
             }
 
-            logger.info(f"<event> Getting all events by user: {username} from Neo4j DB")
+            logger.info(f"<event> Getting all events joined by user: {username} from Neo4j DB")
 
             result, summary, keys = driver.execute_query(query, params)
 
             events = [self._serialize_event(dict(record['e'])) for record in result]
-            logger.info(f"<event> Found {len(events)} events by user: {username} in Neo4j DB")
+            logger.info(f"<event> Found {len(events)} events joined by user: {username} in Neo4j DB")
             return events
         except Exception as e:
-            logger.error(f"<event> Error getting all events by user: {username} from Neo4j DB: {e}")
+            logger.error(f"<event> Error getting all events joined by user: {username} from Neo4j DB: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
+    
+    def get_all_events_hosted_by_user(self, username: str):
+        """Get all events hosted by user. Returns list of event dicts."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+
+            query = """
+            MATCH (u:User {username: $username})-[:HOSTED_BY]->(e:Event)
+            RETURN e
+            """
+            params = {
+                "username": username
+            }
+
+            logger.info(f"<event> Getting all events hosted by user: {username} from Neo4j DB")
+
+            result, summary, keys = driver.execute_query(query, params)
+
+            events = [self._serialize_event(dict(record['e'])) for record in result]
+            logger.info(f"<event> Found {len(events)} events hosted by user: {username} in Neo4j DB")
+            return events
+        except Exception as e:
+            logger.error(f"<event> Error getting all events hosted by user: {username} from Neo4j DB: {e}")
             raise e
         finally:
             if driver:
