@@ -27,7 +27,7 @@ def create_event():
         data = request.get_json()
         
         # Validate required fields
-        required_fields = ['event_name', 'description', 'date_time', 'max_players']
+        required_fields = ['event_name', 'username','description', 'date_time', 'max_players']
         for field in required_fields:
             if field not in data:
                 return jsonify({"error": f"Missing required field: {field}"}), 400
@@ -36,6 +36,7 @@ def create_event():
         logger.info(f"<ml_service_run> Creating event: {data['event_name']}")
         event = event_service.create_event(
             event_name=data['event_name'],
+            username=data['username'],
             description=data['description'],
             date_time=data['date_time'],
             max_players=data['max_players'],
@@ -255,7 +256,7 @@ def list_joined_by_user():
         if not data or 'username' not in data:
             return jsonify({"error": "Request body must be JSON with username"}), 400
         username = data['username']
-        events = event_service.get_all_events_by_user(username=username)
+        events = event_service.get_all_events_joined_by_user(username=username)
         return jsonify({
             "message": "Events joined by user",
             "events": events,
@@ -265,6 +266,24 @@ def list_joined_by_user():
         logger.error(f"<ml_service_run> Error listing events joined by user: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+# List events hosted by user (username only).
+@event_bp.route('/events/list-hosted-by-user', methods=['POST'])
+def list_hosted_by_user():
+    """Return all events the user has hosted. Body: { username }."""
+    try:
+        data = request.get_json(force=True, silent=True)
+        if not data or 'username' not in data:
+            return jsonify({"error": "Request body must be JSON with username"}), 400
+        username = data['username']
+        events = event_service.get_all_events_hosted_by_user(username=username)
+        return jsonify({
+            "message": "Events hosted by user",
+            "events": events,
+            "count": len(events)
+        }), 200
+    except Exception as e:
+        logger.error(f"<ml_service_run> Error listing events hosted by user: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 # Event for sport route.
 @event_bp.route('/events/joined-by-user', methods=['POST'])

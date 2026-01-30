@@ -85,8 +85,13 @@ class FypController < ApplicationController
 
   def event_page
     @event_name = params[:event_name]
+    @is_host = false
     @is_joined = false
     if current_user && current_user['username']
+      hosted_events = MlApiService.get_events_hosted_by_user(username: current_user['username'])
+      if hosted_events && hosted_events['events'].is_a?(Array)
+        @is_host = hosted_events['events'].any? { |e| e['event_name'] == @event_name }
+      end
       joined_events = MlApiService.get_events_joined_by_user(username: current_user['username'])
       if joined_events && joined_events['events'].is_a?(Array)
         @is_joined = joined_events['events'].any? { |e| e['event_name'] == @event_name }
@@ -100,6 +105,26 @@ class FypController < ApplicationController
     end
   end
 
+  def delete_event
+    unless current_user && current_user['username']
+      redirect_to home_login_path, alert: "You must be logged in to delete events"
+      return
+    end
+
+    event_name = params[:event_name]
+    unless event_name.present?
+      redirect_to fyp_search_path, alert: "Invalid event"
+      return
+    end
+
+    result = MlApiService.delete_event(event_name: event_name)
+    if result['message']
+      redirect_to fyp_notifications_path, notice: "Event deleted successfully!"
+    else
+      redirect_to fyp_notifications_path(event_name: event_name), alert: result[:error] || result['error'] || "Failed to delete event"
+    end
+  end
+  
   def join_event
     unless current_user && current_user['username']
       redirect_to home_login_path, alert: "You must be logged in to join events"
@@ -204,8 +229,11 @@ class FypController < ApplicationController
       @follow_requests = []
     end
 
-    events_result = MlApiService.get_events_joined_by_user(username: current_user['username'])
-    @joined_events = (events_result && events_result['events'].is_a?(Array)) ? events_result['events'] : []
+    joined_events_result = MlApiService.get_events_joined_by_user(username: current_user['username'])
+    @joined_events = (joined_events_result && joined_events_result['events'].is_a?(Array)) ? joined_events_result['events'] : []
+
+    hosted_events_result = MlApiService.get_events_hosted_by_user(username: current_user['username'])
+    @hosted_events = (hosted_events_result && hosted_events_result['events'].is_a?(Array)) ? hosted_events_result['events'] : []
   end
 
   def accept_follow_request
@@ -281,6 +309,7 @@ class FypController < ApplicationController
   def create_event_post
     result = MlApiService.create_event(
       event_name: params[:event_name],
+      username: current_user['username'],
       description: params[:description],
       date_time: params[:date_time],
       max_players: params[:max_players]

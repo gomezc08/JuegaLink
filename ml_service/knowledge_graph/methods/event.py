@@ -13,7 +13,7 @@ class Event:
     def __init__(self):
         self.connector = Connector()
 
-    def create_event(self, event_name: str, description: str, date_time: str, max_players: int, current_players: int = 0):
+    def create_event(self, event_name: str, username: str, description: str, date_time: str, max_players: int, current_players: int = 0):
         """Create a new event in Neo4j database. Returns event data. date_time stored as string."""
         driver = None
         try:
@@ -24,15 +24,20 @@ class Event:
             query = """
             CREATE(e:Event{
                 event_name: $event_name,
+                host: $username,
                 description: $description,
                 date_time: $date_time,
                 max_players: $max_players,
                 current_players: $current_players
             })
+            with e
+            MATCH(u:User {username: $username})
+            CREATE(e)-[:HOSTED_BY]->(u)
             RETURN e
             """
             params = {
                 "event_name": event_name,
+                "username": username,
                 "description": description,
                 "date_time": date_time_str,
                 "max_players": max_players,
@@ -115,8 +120,8 @@ class Event:
             if driver:
                 driver.close()
     
-    def get_all_events_by_user(self, username: str):
-        """Get all events by user. Returns list of event dicts."""
+    def get_all_events_joined_by_user(self, username: str):
+        """Get all events joined by user. Returns list of event dicts."""
         driver = None
         try:
             driver = self.connector.connect()
@@ -129,15 +134,43 @@ class Event:
                 "username": username
             }
 
-            logger.info(f"<event> Getting all events by user: {username} from Neo4j DB")
+            logger.info(f"<event> Getting all events joined by user: {username} from Neo4j DB")
 
             result, summary, keys = driver.execute_query(query, params)
 
             events = [self._serialize_event(dict(record['e'])) for record in result]
-            logger.info(f"<event> Found {len(events)} events by user: {username} in Neo4j DB")
+            logger.info(f"<event> Found {len(events)} events joined by user: {username} in Neo4j DB")
             return events
         except Exception as e:
-            logger.error(f"<event> Error getting all events by user: {username} from Neo4j DB: {e}")
+            logger.error(f"<event> Error getting all events joined by user: {username} from Neo4j DB: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
+    
+    def get_all_events_hosted_by_user(self, username: str):
+        """Get all events hosted by user. Returns list of event dicts."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+
+            query = """
+            MATCH (e:Event)-[:HOSTED_BY]->(u:User {username: $username})
+            RETURN e
+            """
+            params = {
+                "username": username
+            }
+
+            logger.info(f"<event> Getting all events hosted by user: {username} from Neo4j DB")
+
+            result, summary, keys = driver.execute_query(query, params)
+
+            events = [self._serialize_event(dict(record['e'])) for record in result]
+            logger.info(f"<event> Found {len(events)} events hosted by user: {username} in Neo4j DB")
+            return events
+        except Exception as e:
+            logger.error(f"<event> Error getting all events hosted by user: {username} from Neo4j DB: {e}")
             raise e
         finally:
             if driver:
@@ -199,7 +232,7 @@ class Event:
 
             query = """
             MATCH(e:Event{event_name: $event_name})
-            DELETE e
+            DETACH DELETE e
             RETURN e
             """
             params = {

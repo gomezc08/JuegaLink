@@ -201,12 +201,25 @@ class MlApiService
       handle_response(response)
     end
 
-    def create_event(event_name:, description:, date_time:, max_players:)
+    def get_events_hosted_by_user(username:)
+      uri = URI("#{BASE_URL}/events/list-hosted-by-user")
+      http = Net::HTTP.new(uri.host, uri.port)
+      body = { username: username }.to_json
+      request = Net::HTTP::Post.new(uri.request_uri)
+      request['Content-Type'] = 'application/json'
+      request['Content-Length'] = body.bytesize.to_s
+      request.body = body
+      response = http.request(request)
+      handle_response(response)
+    end
+
+    def create_event(event_name:, username:, description:, date_time:, max_players:)
       uri = URI("#{BASE_URL}/events/create")
       http = Net::HTTP.new(uri.host, uri.port)
       request = Net::HTTP::Post.new(uri.path, 'Content-Type' => 'application/json')
       request.body = {
         event_name: event_name,
+        username: username,
         description: description,
         date_time: date_time,
         max_players: max_players,
@@ -214,6 +227,17 @@ class MlApiService
       response = http.request(request)
       handle_response(response)
     end
+
+    def delete_event(event_name:)
+      uri = URI("#{BASE_URL}/events/delete")
+      http = Net::HTTP.new(uri.host, uri.port)
+      request = Net::HTTP::Delete.new(uri.path, 'Content-Type' => 'application/json')
+      request.body = {
+        event_name: event_name,
+      }.to_json
+      response = http.request(request)
+      handle_response(response)
+    end 
 
     def join_event(username:, event_name:)
       uri = URI("#{BASE_URL}/events/joined-by-user")

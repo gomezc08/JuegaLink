@@ -20,6 +20,7 @@ Rails.application.routes.draw do
   get "fyp/notifications", to: "fyp#notifications", as: :fyp_notifications
   get "fyp/create_event", to: "fyp#create_event", as: :fyp_create_event
   post "fyp/create_event", to: "fyp#create_event_post", as: :fyp_create_event_post
+  delete "fyp/delete_event", to: "fyp#delete_event", as: :fyp_delete_event
   get "home/login"
   post "home/login", to: "home#login_post"
   get "home/signup"
