@@ -189,6 +189,30 @@ class MlApiService
       handle_response(response)
     end
 
+    def create_post(title:, content:, event_name_mention:, username:)
+      uri = URI("#{BASE_URL}/posts/create")
+      http = Net::HTTP.new(uri.host, uri.port)
+      body = { title: title, content: content, event_name_mention: event_name_mention, username: username }.to_json
+      request = Net::HTTP::Post.new(uri.request_uri)
+      request['Content-Type'] = 'application/json'
+      request['Content-Length'] = body.bytesize.to_s
+      request.body = body
+      response = http.request(request)
+      handle_response(response)
+    end
+    
+    def get_user_posts(username:)
+      uri = URI("#{BASE_URL}/posts/get")
+      http = Net::HTTP.new(uri.host, uri.port)
+      body = { username: username }.to_json
+      request = Net::HTTP::Post.new(uri.request_uri)
+      request['Content-Type'] = 'application/json'
+      request['Content-Length'] = body.bytesize.to_s
+      request.body = body
+      response = http.request(request)
+      handle_response(response)
+    end
+
     def get_events_joined_by_user(username:)
       uri = URI("#{BASE_URL}/events/list-joined-by-user")
       http = Net::HTTP.new(uri.host, uri.port)

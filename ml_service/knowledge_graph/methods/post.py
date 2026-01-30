@@ -13,7 +13,7 @@ class Post:
     def __init__(self):
         self.connector = Connector()
     
-    def create_post(self, title: str, content: str, event_name_mention: str):
+    def create_post(self, title: str, content: str, event_name_mention: str, username: str):
         """Create a new post in Neo4j database. Returns post data (including post_id)."""
         # grab list of username(s) from event.
         user_username_mentions = self._get_user_username_mentions(event_name_mention)
@@ -34,12 +34,14 @@ class Post:
                 content: $content,
                 created_at: $created_at
             })
+            CREATE (u:User {username: $username})-[:POSTED]->(p)
             RETURN p, elementId(p) AS post_id
             """
             params = {
                 "title": title,
                 "content": content,
-                "created_at": datetime.now().isoformat()
+                "created_at": datetime.now().isoformat(),
+                "username": username
             }
 
             logger.info(f"<post> Adding post to Neo4j DB: {params}")
@@ -135,6 +137,35 @@ class Post:
             if driver:
                 driver.close()
 
+    def get_user_posts(self, username: str):
+        """Get posts for a user. Returns list of post data dicts (including post_id) or None."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+
+            query = """
+            MATCH (u:User {username: $username})-[:POSTED]->(p:Post)
+            RETURN p, elementId(p) AS post_id
+            """
+            params = {"username": username}
+
+            logger.info(f"<post> Getting posts for user from Neo4j DB: {params}")
+
+            result, summary, keys = driver.execute_query(query, params)
+
+            if result:
+                posts = [{**dict(record["p"]), "post_id": record["post_id"]} for record in result]
+                logger.info(f"<post> Posts found in Neo4j DB: {posts}")
+                return posts
+            logger.info(f"<post> No posts found in Neo4j DB for user: {username}")
+            return []
+        except Exception as e:
+            logger.error(f"<post> Error getting posts for user from Neo4j DB: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
+    
     def update_post(self, post_id: str, title: str = None, content: str = None):
         """Update post title/content. Returns updated post data dict or None."""
         driver = None

@@ -26,7 +26,7 @@ def create_post():
         data = request.get_json()
         
         # Validate required fields
-        required_fields = ['title', 'content', 'event_name_mention']
+        required_fields = ['title', 'content', 'event_name_mention', 'username']
         for field in required_fields:
             if field not in data:
                 return jsonify({"error": f"Missing required field: {field}"}), 400
@@ -36,7 +36,8 @@ def create_post():
         post = post_service.create_post(
             title=data['title'],
             content=data['content'],
-            event_name_mention=data['event_name_mention']
+            event_name_mention=data['event_name_mention'],
+            username=data['username']
         )
         
         logger.info(f"<ml_service_run> Post created: {post}")
@@ -112,7 +113,7 @@ def update_post():
         return jsonify({"error": str(e)}), 500
 
 # User gets a post.
-@post_bp.route('/posts/get', methods=['POST'])
+@post_bp.route('/posts/get-by-id', methods=['POST'])
 def get_post():
     """Get a post by id"""
     try:
@@ -138,6 +139,31 @@ def get_post():
             }), 404
     except Exception as e:
         logger.error(f"<ml_service_run> Error getting post: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+# User gets all posts for a user.
+@post_bp.route('/posts/get', methods=['POST'])
+def get_user_posts():
+    """Get User's Posts"""
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        if 'username' not in data:
+            return jsonify({"error": "Missing required field: username"}), 400
+        
+        # Get post
+        logger.info(f"<ml_service_run> Getting all posts for user: {data['username']}")
+        posts = post_service.get_user_posts(username=data['username'])
+        
+        if posts:
+            logger.info(f"<ml_service_run> Posts found: {posts}")
+            return jsonify({
+                "message": "Posts found successfully",
+                "posts": posts
+            }), 200
+    except Exception as e:
+        logger.error(f"<ml_service_run> Error getting user posts: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 # User likes a post.

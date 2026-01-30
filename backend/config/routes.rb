@@ -4,6 +4,9 @@ Rails.application.routes.draw do
   get "fyp/index"
   get "fyp/profile"
   get "fyp/edit_profile"
+  get "fyp/create_post", to: "fyp#create_post", as: :fyp_create_post
+  post "fyp/create_post", to: "fyp#create_post_post", as: :fyp_create_post_post
+  get "fyp/post/:id", to: "fyp#post", as: :fyp_post
   patch "fyp/profile", to: "fyp#update_profile"
   put "fyp/profile", to: "fyp#update_profile"
   get "fyp/search"
