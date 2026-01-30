@@ -204,8 +204,11 @@ class FypController < ApplicationController
       @follow_requests = []
     end
 
-    events_result = MlApiService.get_events_joined_by_user(username: current_user['username'])
-    @joined_events = (events_result && events_result['events'].is_a?(Array)) ? events_result['events'] : []
+    joined_events_result = MlApiService.get_events_joined_by_user(username: current_user['username'])
+    @joined_events = (joined_events_result && joined_events_result['events'].is_a?(Array)) ? joined_events_result['events'] : []
+
+    hosted_events_result = MlApiService.get_events_hosted_by_user(username: current_user['username'])
+    @hosted_events = (hosted_events_result && hosted_events_result['events'].is_a?(Array)) ? hosted_events_result['events'] : []
   end
 
   def accept_follow_request

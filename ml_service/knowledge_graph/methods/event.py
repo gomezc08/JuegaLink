@@ -154,7 +154,7 @@ class Event:
             driver = self.connector.connect()
 
             query = """
-            MATCH (u:User {username: $username})-[:HOSTED_BY]->(e:Event)
+            MATCH (e:Event)-[:HOSTED_BY]->(u:User {username: $username})
             RETURN e
             """
             params = {
