@@ -1,19 +1,17 @@
 <div class="notifications-container">
-  <div class="notifications-header mb-4">
-    <h2 class="notifications-title">Notifications</h2>
-    <%= link_to "← Back to Profile", fyp_profile_path, class: "btn btn-outline-secondary btn-sm" %>
-  </div>
-
   <div class="notifications-tabs mb-4">
-    <ul class="nav nav-tabs">
-      <li class="nav-item">
-        <a class="nav-link active" href="#follow-requests" data-bs-toggle="tab">Follow Requests</a>
+    <ul class="nav nav-tabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="tab-follow-requests" data-bs-toggle="tab" data-bs-target="#follow-requests" type="button" role="tab" aria-controls="follow-requests" aria-selected="true">Follow Requests</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="tab-events" data-bs-toggle="tab" data-bs-target="#events" type="button" role="tab" aria-controls="events" aria-selected="false">Events</button>
       </li>
     </ul>
   </div>
 
   <div class="tab-content">
-    <div class="tab-pane fade show active" id="follow-requests">
+    <div class="tab-pane fade show active" id="follow-requests" role="tabpanel" aria-labelledby="tab-follow-requests">
       <% if @follow_requests && @follow_requests.any? %>
         <div class="notifications-list">
           <% @follow_requests.each do |request| %>
@@ -48,5 +46,70 @@
         </div>
       <% end %>
     </div>
+
+    <div class="tab-pane fade" id="events" role="tabpanel" aria-labelledby="tab-events">
+      <% if @joined_events && @joined_events.any? %>
+        <div class="notifications-list">
+          <% @joined_events.each do |event| %>
+            <div class="notification-card">
+              <div class="notification-avatar event-avatar">
+              <%= link_to fyp_event_page_path(event_name: event['event_name']), class: "event-link" do %>
+                <%= event['event_name']&.first&.upcase || 'E' %>
+              <% end %>
+              </div>
+              <div class="notification-info flex-grow-1">
+                <h4 class="notification-username mb-1">
+                  <%= event['event_name'] %>
+                </h4>
+                <% if event['description'].present? %>
+                  <p class="notification-text mb-1"><%= truncate(event['description'], length: 80) %></p>
+                <% end %>
+                <p class="notification-text small text-muted mb-0">
+                  <% if event['date_time'].present? %>
+                    <%= event['date_time'] %>
+                  <% end %>
+                  <% if event['current_players'].present? && event['max_players'].present? %>
+                    · <%= event['current_players'] %> / <%= event['max_players'] %> players
+                  <% end %>
+                </p>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="no-notifications">
+          <p class="no-notifications-text">
+            You haven't joined any events yet.
+          </p>
+        </div>
+      <% end %>
+    </div>
   </div>
 </div>
+
+<script>
+  (function() {
+    var buttons = document.querySelectorAll('.notifications-container .nav-link');
+    var panes = document.querySelectorAll('.notifications-container .tab-pane');
+
+    buttons.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        buttons.forEach(function(b) {
+          b.classList.remove('active');
+          b.setAttribute('aria-selected', 'false');
+        });
+        panes.forEach(function(p) {
+          p.classList.remove('show', 'active');
+        });
+
+        btn.classList.add('active');
+        btn.setAttribute('aria-selected', 'true');
+
+        var target = document.querySelector(btn.getAttribute('data-bs-target'));
+        if (target) {
+          target.classList.add('show', 'active');
+        }
+      });
+    });
+  })();
+</script>

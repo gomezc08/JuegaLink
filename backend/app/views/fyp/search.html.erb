@@ -8,7 +8,7 @@
           <div class="input-group mb-3">
             <%= form.text_field :q, 
                 class: "form-control search-input", 
-                placeholder: "Search for users or fields...", 
+                placeholder: "Search for users or events...", 
                 value: @query,
                 autofocus: true %>
             <%= form.hidden_field :filter, value: @filter, id: 'search_filter' %>
@@ -22,10 +22,10 @@
               onclick: "document.getElementById('search_filter').value = 'user'; return true;" do %>
             <span>👤</span> Users
           <% end %>
-          <%= link_to fyp_search_path(q: @query, filter: 'field'), 
-              class: "filter-btn #{'active' if @filter == 'field'}",
-              onclick: "document.getElementById('search_filter').value = 'field'; return true;" do %>
-            <span>🏟️</span> Fields
+          <%= link_to fyp_search_path(q: @query, filter: 'event'), 
+              class: "filter-btn #{'active' if @filter == 'event'}",
+              onclick: "document.getElementById('search_filter').value = 'event'; return true;" do %>
+            <span>🏟️</span> Events
           <% end %>
         </div>
       </div>
@@ -61,31 +61,34 @@
                 <% end %>
               </div>
             <% else %>
-              <div class="fields-results">
-                <% @results.each do |field| %>
-                  <div class="result-card field-card">
+              <div class="events-results">
+                <% @results.each do |event| %>
+                  <%= link_to fyp_event_page_path(event_name: event['event_name']), class: "result-card-link" do %>
+                  <div class="result-card event-card">
                     <div class="result-card-body">
-                      <div class="field-icon">🏟️</div>
+                      <div class="event-icon">🏟️</div>
                       <div class="result-info">
-                        <h4 class="result-title"><%= field['field_name'] %></h4>
-                        <% if field['address'].present? %>
-                          <p class="result-meta">📍 <%= field['address'] %></p>
+                        <h4 class="result-title"><%= event['event_name'] %></h4>
+                        <% if event['date_time'].present? %>
+                          <p class="result-meta"><%= event['date_time'].is_a?(String) ? (Time.parse(event['date_time']).strftime('%B %d, %Y') rescue event['date_time']) : event['date_time'].strftime('%B %d, %Y') %></p>
                         <% end %>
+                        <p class="result-meta"><%= event['current_players'] %> / <%= event['max_players'] %> players</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  <% end %>
                 <% end %>
               </div>
             <% end %>
           <% else %>
             <div class="no-results">
-              <p class="no-results-text">No <%= @filter == 'user' ? 'users' : 'fields' %> found matching "<%= @query %>"</p>
+              <p class="no-results-text">No <%= @filter == 'user' ? 'users' : 'events' %> found matching "<%= @query %>"</p>
             </div>
           <% end %>
         </div>
       <% else %>
         <div class="search-prompt">
-          <p class="prompt-text">Enter a search term above to find users or fields</p>
+          <p class="prompt-text">Enter a search term above to find users or events</p>
         </div>
       <% end %>
     </div>

@@ -54,16 +54,16 @@ class FypController < ApplicationController
         result = MlApiService.search_users(query: @query)
         @results = result['users'] || []
         @count = result['count'] || 0
-      elsif @filter == 'field'
-        result = MlApiService.search_fields(query: @query)
-        @results = result['fields'] || []
+      elsif @filter == 'event'
+        result = MlApiService.search_events(query: @query)
+        @results = result['events'] || []
         @count = result['count'] || 0
       end
     else
       @count = 0
     end
   end
-
+  
   def user_page
     @username = params[:username]
     result = MlApiService.get_user(username: @username)
@@ -80,6 +80,71 @@ class FypController < ApplicationController
       end
     else
       redirect_to fyp_search_path, alert: result[:error] || "User not found"
+    end
+  end
+
+  def event_page
+    @event_name = params[:event_name]
+    @is_joined = false
+    if current_user && current_user['username']
+      joined_events = MlApiService.get_events_joined_by_user(username: current_user['username'])
+      if joined_events && joined_events['events'].is_a?(Array)
+        @is_joined = joined_events['events'].any? { |e| e['event_name'] == @event_name }
+      end
+    end
+    result = MlApiService.get_event(event_name: @event_name)
+    if result['event']
+      @event = result['event']
+    else
+      redirect_to fyp_search_path, alert: result[:error] || "Event not found"
+    end
+  end
+
+  def join_event
+    unless current_user && current_user['username']
+      redirect_to home_login_path, alert: "You must be logged in to join events"
+      return
+    end
+
+    event_name = params[:event_name]
+    unless event_name.present?
+      redirect_to fyp_search_path, alert: "Invalid event"
+      return
+    end
+
+    result = MlApiService.join_event(
+      username: current_user['username'],
+      event_name: event_name
+    )
+
+    if result['message']
+      redirect_to fyp_event_page_path(event_name: event_name), notice: "You joined the event!"
+    else
+      redirect_to fyp_event_page_path(event_name: event_name), alert: result[:error] || result['error'] || "Failed to join event"
+    end
+  end
+
+  def unjoin_event
+    unless current_user && current_user['username']
+      redirect_to home_login_path, alert: "You must be logged in to leave events"
+      return
+    end
+
+    event_name = params[:event_name]
+    unless event_name.present?
+      redirect_to fyp_search_path, alert: "Invalid event"
+      return
+    end
+
+    result = MlApiService.unjoin_event(
+      username: current_user['username'],
+      event_name: event_name
+    )
+
+    if result['message']
+      redirect_to fyp_event_page_path(event_name: event_name), notice: "You left the event."
+    else
+      redirect_to fyp_event_page_path(event_name: event_name), alert: result[:error] || result['error'] || "Failed to leave event"
     end
   end
 
@@ -138,6 +203,9 @@ class FypController < ApplicationController
     else
       @follow_requests = []
     end
+
+    events_result = MlApiService.get_events_joined_by_user(username: current_user['username'])
+    @joined_events = (events_result && events_result['events'].is_a?(Array)) ? events_result['events'] : []
   end
 
   def accept_follow_request
@@ -208,6 +276,24 @@ class FypController < ApplicationController
       @friends_list = result && result['following'].is_a?(Array) ? result['following'] : []
       @page_title = "Following"
     end
+  end
+
+  def create_event_post
+    result = MlApiService.create_event(
+      event_name: params[:event_name],
+      description: params[:description],
+      date_time: params[:date_time],
+      max_players: params[:max_players]
+    )
+    
+    if result['event']
+      redirect_to fyp_index_path, notice: "Event created successfully!"
+    else
+      redirect_to fyp_create_event_path, alert: result[:error] || "Failed to create event"
+    end
+  end
+
+  def create_event
   end
   
   def login

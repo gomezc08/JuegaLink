@@ -39,7 +39,7 @@ def create_event():
             description=data['description'],
             date_time=data['date_time'],
             max_players=data['max_players'],
-            current_players=data.get('current_players', 0)
+            current_players=data.get('current_players', 1)
         )
         
         if event:
@@ -86,21 +86,27 @@ def get_event():
         return jsonify({"error": str(e)}), 500
 
 # Get all events route.
-@event_bp.route('/events/all', methods=['GET'])
-def get_all_events():
-    """Get all events"""
+@event_bp.route('/search/events', methods=['GET'])
+def search_events():
+    """Search for events by name"""
     try:
-        logger.info("<ml_service_run> Getting all events")
-        events = event_service.get_all_events()
+        query = request.args.get('q', '')
+        if not query:
+            return jsonify({
+                "events": [],
+                "count": 0
+            }), 200
         
-        logger.info(f"<ml_service_run> Found {len(events)} events")
+        events = event_service.search_events(query)
+        
+        logger.info(f"<ml_service_run> Found {len(events)} events matching query: {query}")
         return jsonify({
-            "message": "Events retrieved successfully",
+            "message": "Events searched successfully",
             "events": events,
             "count": len(events)
         }), 200
     except Exception as e:
-        logger.error(f"<ml_service_run> Error getting all events: {str(e)}")
+        logger.error(f"<ml_service_run> Error searching events: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 # Update event route.
@@ -240,13 +246,36 @@ def for_sport():
         logger.error(f"<ml_service_run> Error creating for sport relationship: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+# List events joined by user (username only).
+@event_bp.route('/events/list-joined-by-user', methods=['POST'])
+def list_joined_by_user():
+    """Return all events the user has joined. Body: { username }."""
+    try:
+        data = request.get_json(force=True, silent=True)
+        if not data or 'username' not in data:
+            return jsonify({"error": "Request body must be JSON with username"}), 400
+        username = data['username']
+        events = event_service.get_all_events_by_user(username=username)
+        return jsonify({
+            "message": "Events joined by user",
+            "events": events,
+            "count": len(events)
+        }), 200
+    except Exception as e:
+        logger.error(f"<ml_service_run> Error listing events joined by user: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+
 # Event for sport route.
 @event_bp.route('/events/joined-by-user', methods=['POST'])
 def joined_by_user():
     """Create a JOINED relationship between an user and an event"""
     try:
-        data = request.get_json()
-        
+        # Accept JSON even if Content-Type was not set correctly by client
+        data = request.get_json(force=True, silent=True)
+        if not data:
+            return jsonify({"error": "Request body must be JSON with event_name and username"}), 400
+
         # Validate required fields
         required_fields = ['event_name', 'username']
         for field in required_fields:
@@ -287,4 +316,37 @@ def joined_by_user():
         }), 201
     except Exception as e:
         logger.error(f"<ml_service_run> Error creating user joined event relationship: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+
+@event_bp.route('/events/left-by-user', methods=['POST'])
+def left_by_user():
+    """Remove JOINED relationship and decrement event current_players"""
+    try:
+        data = request.get_json(force=True, silent=True)
+        if not data:
+            return jsonify({"error": "Request body must be JSON with event_name and username"}), 400
+
+        required_fields = ['event_name', 'username']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({"error": f"Missing required field: {field}"}), 400
+
+        event_name = data['event_name']
+        username = data['username']
+
+        logger.info(f"<ml_service_run> Removing JOINED relationship: {username} -X-> {event_name}")
+        success = event_service.user_left_event(event_name=event_name, username=username)
+
+        if success:
+            logger.info(f"<ml_service_run> JOINED relationship removed and player count updated")
+            return jsonify({
+                "message": "User left event successfully"
+            }), 200
+        else:
+            return jsonify({
+                "error": "Failed to leave event (relationship may not exist)"
+            }), 400
+    except Exception as e:
+        logger.error(f"<ml_service_run> Error removing user joined event relationship: {str(e)}")
         return jsonify({"error": str(e)}), 500
