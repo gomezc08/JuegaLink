@@ -52,11 +52,11 @@ class FypController < ApplicationController
   end
 
   def post
-    @post = MlApiService.get_post(id: params[:id])
-    if result['post']
+    result = MlApiService.get_post(id: params[:id])
+    if result && result['post']
       @post = result['post']
     else
-      redirect_to fyp_profile_path, alert: result[:error] || "Failed to get post"
+      redirect_to fyp_profile_path, alert: (result && (result['error'] || result[:error])) || "Failed to get post"
     end
   end
 

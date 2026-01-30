@@ -189,6 +189,18 @@ class MlApiService
       handle_response(response)
     end
 
+    def get_post(id:)
+      uri = URI("#{BASE_URL}/posts/get-by-id")
+      http = Net::HTTP.new(uri.host, uri.port)
+      body = { post_id: id }.to_json
+      request = Net::HTTP::Post.new(uri.request_uri)
+      request['Content-Type'] = 'application/json'
+      request['Content-Length'] = body.bytesize.to_s
+      request.body = body
+      response = http.request(request)
+      handle_response(response)
+    end
+    
     def create_post(title:, content:, event_name_mention:, username:)
       uri = URI("#{BASE_URL}/posts/create")
       http = Net::HTTP.new(uri.host, uri.port)
