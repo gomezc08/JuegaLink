@@ -56,20 +56,18 @@
           <% @joined_events.each do |event| %>
             <div class="notification-card">
               <div class="notification-avatar event-avatar">
-              <%= link_to fyp_event_page_path(event_name: event['event_name']), class: "event-link" do %>
                 <%= event['event_name']&.first&.upcase || 'E' %>
-              <% end %>
               </div>
               <div class="notification-info flex-grow-1">
                 <h4 class="notification-username mb-1">
-                  <%= event['event_name'] %>
+                  <%= link_to event['event_name'], fyp_event_page_path(event_name: event['event_name']), class: "notification-link" %>
                 </h4>
                 <% if event['description'].present? %>
                   <p class="notification-text mb-1"><%= truncate(event['description'], length: 80) %></p>
                 <% end %>
                 <p class="notification-text small text-muted mb-0">
                   <% if event['date_time'].present? %>
-                    <%= event['date_time'] %>
+                    <%= event['date_time'].is_a?(String) ? (Time.parse(event['date_time']).strftime('%b %-d, %Y at %-l:%M %p') rescue event['date_time']) : event['date_time'].strftime('%b %-d, %Y at %-l:%M %p') %>
                   <% end %>
                   <% if event['current_players'].present? && event['max_players'].present? %>
                     · <%= event['current_players'] %> / <%= event['max_players'] %> players
@@ -94,20 +92,18 @@
           <% @hosted_events.each do |event| %>
             <div class="notification-card">
               <div class="notification-avatar event-avatar">
-                <%= link_to fyp_event_page_path(event_name: event['event_name']), class: "event-link" do %>
-                  <%= event['event_name']&.first&.upcase || 'E' %>
-                <% end %>
+                <%= event['event_name']&.first&.upcase || 'E' %>
               </div>
               <div class="notification-info flex-grow-1">
                 <h4 class="notification-username mb-1">
-                  <%= event['event_name'] %>
+                  <%= link_to event['event_name'], fyp_event_page_path(event_name: event['event_name']), class: "notification-link" %>
                 </h4>
                 <% if event['description'].present? %>
                   <p class="notification-text mb-1"><%= truncate(event['description'], length: 80) %></p>
                 <% end %>
                 <p class="notification-text small text-muted mb-0">
                   <% if event['date_time'].present? %>
-                    <%= event['date_time'] %>
+                    <%= event['date_time'].is_a?(String) ? (Time.parse(event['date_time']).strftime('%b %-d, %Y at %-l:%M %p') rescue event['date_time']) : event['date_time'].strftime('%b %-d, %Y at %-l:%M %p') %>
                   <% end %>
                   <% if event['current_players'].present? && event['max_players'].present? %>
                     · <%= event['current_players'] %> / <%= event['max_players'] %> players
