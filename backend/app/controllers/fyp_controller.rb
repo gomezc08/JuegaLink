@@ -57,6 +57,10 @@ class FypController < ApplicationController
       @post = result['post']
       # Use liked from redirect param (after like/unlike) or from API if it returns it
       @liked = (params[:liked] == 'true') || result.dig('post', 'liked')
+      # Fetch comments and whether current user has commented
+      comments_result = MlApiService.get_post_comments(id: params[:id])
+      @comments = (comments_result && comments_result['comments'].is_a?(Array)) ? comments_result['comments'] : []
+      @has_commented = current_user && current_user['username'] && @comments.any? { |c| c['username'] == current_user['username'] }
     else
       redirect_to fyp_profile_path, alert: (result && (result['error'] || result[:error])) || "Failed to get post"
     end
@@ -144,10 +148,11 @@ class FypController < ApplicationController
     end
 
     result = MlApiService.comment_post(username: current_user['username'], id: params[:comment_post_id], comment: params[:comment])
+    post_id = params[:comment_post_id]
     if result['message']
-      redirect_to fyp_profile_path, notice: "Comment posted successfully!"
+      redirect_to fyp_post_path(post_id), notice: "Comment posted successfully!"
     else
-      redirect_to fyp_profile_path, alert: result[:error] || "Failed to comment on post"
+      redirect_to (post_id.present? ? fyp_post_path(post_id) : fyp_profile_path), alert: result['error'] || result[:error] || "Failed to comment on post"
     end
   end
 
