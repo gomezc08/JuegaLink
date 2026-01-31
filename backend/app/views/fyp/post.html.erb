@@ -6,9 +6,12 @@
 
           <!-- Post Header -->
           <div class="card-header d-flex align-items-center" style="background: none; border-bottom: 1px solid #efefef; padding: 14px 16px;">
-            <div class="profile-picture" style="width: 32px; height: 32px; font-size: 14px; margin-right: 12px;">
-              <%= @post['username']&.first&.upcase || 'U' %>
-            </div>
+            <%= link_to fyp_profile_path(username: @post['username']), class: "d-flex align-items-center text-decoration-none text-dark" do %>
+              <div class="profile-picture" style="width: 32px; height: 32px; font-size: 14px; margin-right: 12px;">
+                <%= @post['username']&.first&.upcase || 'U' %>
+              </div>
+              <strong><%= @post['username'] %></strong>
+            <% end %>
           </div>
 
           <!-- Post Body -->
@@ -22,6 +25,16 @@
                 <span class="badge" style="background-color: #e8f4f8; color: #1a7fa0; font-size: 0.8rem;"><i class="bi bi-calendar-event me-1"></i><%= @post['event_name_mention'] %></span>
               <% end %>
             <% end %>
+          </div>
+
+          <!-- Actions -->
+          <div class="d-flex align-items-center" style="padding: 8px 16px; border-top: 1px solid #efefef; gap: 12px;">
+            <a href="<%= fyp_profile_path %>" class="post-like-btn" data-liked="false" onclick="event.preventDefault(); var icon = this.querySelector('i'); if (this.dataset.liked === 'true') { icon.className = 'bi bi-heart'; icon.style.color = '#262626'; this.dataset.liked = 'false'; } else { icon.className = 'bi bi-heart-fill'; icon.style.color = '#ed4956'; this.dataset.liked = 'true'; }" style="text-decoration: none; font-size: 1.4rem;">
+              <i class="bi bi-heart" style="color: #262626;"></i>
+            </a>
+            <a href="<%= fyp_profile_path %>" class="post-comment-btn" style="text-decoration: none; font-size: 1.4rem; color: #262626;">
+              <i class="bi bi-chat"></i>
+            </a>
           </div>
 
         <div class="card-footer text-center" style="background: none; border-top: 1px solid #efefef; padding: 12px 16px;">
