@@ -32,6 +32,7 @@ class Post:
             CREATE(p:Post{
                 title: $title,
                 content: $content,
+                username: $username,
                 created_at: $created_at
             })
             CREATE (u:User {username: $username})-[:POSTED]->(p)
@@ -40,8 +41,8 @@ class Post:
             params = {
                 "title": title,
                 "content": content,
-                "created_at": datetime.now().isoformat(),
-                "username": username
+                "username": username,
+                "created_at": datetime.now().isoformat()
             }
 
             logger.info(f"<post> Adding post to Neo4j DB: {params}")
