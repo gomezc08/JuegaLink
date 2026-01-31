@@ -6,9 +6,12 @@
 
           <!-- Post Header -->
           <div class="card-header d-flex align-items-center" style="background: none; border-bottom: 1px solid #efefef; padding: 14px 16px;">
-            <div class="profile-picture" style="width: 32px; height: 32px; font-size: 14px; margin-right: 12px;">
-              <%= @post['username']&.first&.upcase || 'U' %>
-            </div>
+            <%= link_to fyp_profile_path(username: @post['username']), class: "d-flex align-items-center text-decoration-none text-dark" do %>
+              <div class="profile-picture" style="width: 32px; height: 32px; font-size: 14px; margin-right: 12px;">
+                <%= @post['username']&.first&.upcase || 'U' %>
+              </div>
+              <strong><%= @post['username'] %></strong>
+            <% end %>
           </div>
 
           <!-- Post Body -->
@@ -23,6 +26,48 @@
               <% end %>
             <% end %>
           </div>
+
+          <!-- Actions -->
+          <div class="d-flex align-items-center" style="padding: 8px 16px; border-top: 1px solid #efefef; gap: 12px;">
+            <% liked = @liked.present? %>
+            <% if liked %>
+              <%= form_with url: fyp_unlike_post_path, method: :post, local: true, class: "d-inline" do |form| %>
+                <%= form.hidden_field :unlike_post_id, value: @post['post_id'] %>
+                <%= form.button type: "submit", class: "border-0 bg-transparent p-0", style: "font-size: 1.4rem; cursor: pointer;" do %>
+                  <i class="bi bi-heart-fill" style="color: #ed4956;"></i>
+                <% end %>
+              <% end %>
+            <% else %>
+              <%= form_with url: fyp_like_post_path, method: :post, local: true, class: "d-inline" do |form| %>
+                <%= form.hidden_field :like_post_id, value: @post['post_id'] %>
+                <%= form.button type: "submit", class: "border-0 bg-transparent p-0", style: "font-size: 1.4rem; cursor: pointer; color: #262626;" do %>
+                  <i class="bi bi-heart"></i>
+                <% end %>
+              <% end %>
+            <% end %>
+            <%= form_with url: fyp_comment_post_path, method: :post, local: true, class: "d-inline flex-grow-1" do |form| %>
+              <%= form.hidden_field :comment_post_id, value: @post['post_id'] %>
+              <%= form.text_field :comment, placeholder: (@has_commented ? "Add another comment..." : "Add a comment"), class: "form-control form-control-sm" %>
+              <%= form.button type: "submit", class: "btn btn-outline-secondary btn-sm" do %>
+                Post
+              <% end %>
+            <% end %>
+          </div>
+
+          <% if @comments.present? %>
+            <div class="post-comments border-top" style="padding: 12px 16px; background: #fafafa;">
+              <p class="small text-muted mb-2" style="font-weight: 600;">Comments</p>
+              <% @comments.each do |comment| %>
+                <div class="mb-2 small">
+                  <%= link_to comment['username'], fyp_user_page_path(username: comment['username']), class: "text-dark text-decoration-none fw-semibold" %>
+                  <span style="color: #262626;"><%= comment['content'] %></span>
+                  <% if comment['created_at'].present? %>
+                    <span class="text-muted ms-1"><%= Time.parse(comment['created_at']).strftime('%b %d') rescue comment['created_at'] %></span>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
 
         <div class="card-footer text-center" style="background: none; border-top: 1px solid #efefef; padding: 12px 16px;">
             <%= form_with url: fyp_delete_post_path, method: :delete, local: true, class: "d-inline" do |form| %>

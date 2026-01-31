@@ -34,6 +34,11 @@ Rails.application.routes.draw do
   post "fyp/create_post", to: "fyp#create_post_post", as: :fyp_create_post_post
   delete "fyp/delete_post", to: "fyp#delete_post", as: :fyp_delete_post
 
+  # post engagement.
+  post "fyp/like_post", to: "fyp#like_post", as: :fyp_like_post
+  post "fyp/unlike_post", to: "fyp#unlike_post", as: :fyp_unlike_post
+  post "fyp/comment_post", to: "fyp#comment_post", as: :fyp_comment_post
+
   # event.
   get "fyp/event_page/:event_name", to: "fyp#event_page", as: :fyp_event_page
   get "fyp/create_event", to: "fyp#create_event", as: :fyp_create_event

@@ -32,6 +32,7 @@ class Post:
             CREATE(p:Post{
                 title: $title,
                 content: $content,
+                username: $username,
                 created_at: $created_at
             })
             CREATE (u:User {username: $username})-[:POSTED]->(p)
@@ -40,8 +41,8 @@ class Post:
             params = {
                 "title": title,
                 "content": content,
-                "created_at": datetime.now().isoformat(),
-                "username": username
+                "username": username,
+                "created_at": datetime.now().isoformat()
             }
 
             logger.info(f"<post> Adding post to Neo4j DB: {params}")
@@ -308,7 +309,40 @@ class Post:
         finally:
             if driver:
                 driver.close()
-    
+
+    def get_post_comments(self, post_id: str):
+        """Get all comments for a post. Returns list of { username, content, created_at }."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+            query = """
+            MATCH (u:User)-[r:COMMENTED]->(p:Post)
+            WHERE elementId(p) = $post_id
+            RETURN u.username AS username, r.content AS content, r.created_at AS created_at
+            ORDER BY r.created_at
+            """
+            params = {"post_id": post_id}
+            result, summary, keys = driver.execute_query(query, params)
+            comments = []
+            for record in result:
+                created_at = record["created_at"]
+                if hasattr(created_at, "iso_format"):
+                    created_at = created_at.iso_format()
+                elif hasattr(created_at, "isoformat") and callable(getattr(created_at, "isoformat")):
+                    created_at = created_at.isoformat()
+                comments.append({
+                    "username": record["username"],
+                    "content": record["content"],
+                    "created_at": created_at,
+                })
+            return comments
+        except Exception as e:
+            logger.error(f"<post> Error getting post comments: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
+
     def _get_user_username_mentions(self, event_name_mention: str):
         """Get list of username(s) linked to event via JOINED"""
         driver = None

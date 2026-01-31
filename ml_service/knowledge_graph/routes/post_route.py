@@ -235,6 +235,26 @@ def unlike_post():
         logger.error(f"<ml_service_run> Error unliking post: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+# Get comments for a post.
+@post_bp.route('/posts/get-comments', methods=['POST'])
+def get_post_comments():
+    """Get all comments for a post. Body: { post_id }."""
+    try:
+        data = request.get_json(force=True, silent=True)
+        if not data or 'post_id' not in data:
+            return jsonify({"error": "Request body must be JSON with post_id"}), 400
+        post_id = data['post_id']
+        comments = post_service.get_post_comments(post_id=post_id)
+        return jsonify({
+            "message": "Comments found",
+            "comments": comments,
+            "count": len(comments)
+        }), 200
+    except Exception as e:
+        logger.error(f"<ml_service_run> Error getting post comments: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+
 # User comments on a post.
 @post_bp.route('/posts/comment', methods=['POST'])
 def comment_on_post():
