@@ -29,10 +29,23 @@
 
           <!-- Actions -->
           <div class="d-flex align-items-center" style="padding: 8px 16px; border-top: 1px solid #efefef; gap: 12px;">
-            <a href="<%= fyp_profile_path %>" class="post-like-btn" data-liked="false" onclick="event.preventDefault(); var icon = this.querySelector('i'); if (this.dataset.liked === 'true') { icon.className = 'bi bi-heart'; icon.style.color = '#262626'; this.dataset.liked = 'false'; } else { icon.className = 'bi bi-heart-fill'; icon.style.color = '#ed4956'; this.dataset.liked = 'true'; }" style="text-decoration: none; font-size: 1.4rem;">
-              <i class="bi bi-heart" style="color: #262626;"></i>
-            </a>
-            <a href="<%= fyp_profile_path %>" class="post-comment-btn" style="text-decoration: none; font-size: 1.4rem; color: #262626;">
+            <% liked = @liked.present? %>
+            <% if liked %>
+              <%= form_with url: fyp_unlike_post_path, method: :post, local: true, class: "d-inline" do |form| %>
+                <%= form.hidden_field :unlike_post_id, value: @post['post_id'] %>
+                <%= form.button type: "submit", class: "border-0 bg-transparent p-0", style: "font-size: 1.4rem; cursor: pointer;" do %>
+                  <i class="bi bi-heart-fill" style="color: #ed4956;"></i>
+                <% end %>
+              <% end %>
+            <% else %>
+              <%= form_with url: fyp_like_post_path, method: :post, local: true, class: "d-inline" do |form| %>
+                <%= form.hidden_field :like_post_id, value: @post['post_id'] %>
+                <%= form.button type: "submit", class: "border-0 bg-transparent p-0", style: "font-size: 1.4rem; cursor: pointer; color: #262626;" do %>
+                  <i class="bi bi-heart"></i>
+                <% end %>
+              <% end %>
+            <% end %>
+            <a href="#" class="post-comment-btn" style="text-decoration: none; font-size: 1.4rem; color: #262626;">
               <i class="bi bi-chat"></i>
             </a>
           </div>

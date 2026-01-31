@@ -55,6 +55,8 @@ class FypController < ApplicationController
     result = MlApiService.get_post(id: params[:id])
     if result && result['post']
       @post = result['post']
+      # Use liked from redirect param (after like/unlike) or from API if it returns it
+      @liked = (params[:liked] == 'true') || result.dig('post', 'liked')
     else
       redirect_to fyp_profile_path, alert: (result && (result['error'] || result[:error])) || "Failed to get post"
     end
@@ -104,7 +106,51 @@ class FypController < ApplicationController
       redirect_to fyp_profile_path, alert: result[:error] || "Failed to delete post"
     end
   end
-  
+
+  def like_post
+    unless current_user && current_user['username']
+      redirect_to home_login_path, alert: "You must be logged in to like posts"
+      return
+    end
+
+    result = MlApiService.like_post(username: current_user['username'], id: params[:like_post_id])
+    post_id = params[:like_post_id]
+    if result['message']
+      redirect_to fyp_post_path(post_id, liked: 'true'), notice: "Post liked successfully!"
+    else
+      redirect_to (post_id.present? ? fyp_post_path(post_id) : fyp_profile_path), alert: result['error'] || result[:error] || "Failed to like post"
+    end
+  end
+
+  def unlike_post
+    unless current_user && current_user['username']
+      redirect_to home_login_path, alert: "You must be logged in to unlike posts"
+      return
+    end
+
+    result = MlApiService.unlike_post(username: current_user['username'], id: params[:unlike_post_id])
+    post_id = params[:unlike_post_id]
+    if result['message']
+      redirect_to fyp_post_path(post_id), notice: "Post unliked successfully!"  # no liked param = show outline heart
+    else
+      redirect_to (post_id.present? ? fyp_post_path(post_id) : fyp_profile_path), alert: result['error'] || result[:error] || "Failed to unlike post"
+    end
+  end
+
+  def comment_post
+    unless current_user && current_user['username']
+      redirect_to home_login_path, alert: "You must be logged in to comment on posts"
+      return
+    end
+
+    result = MlApiService.comment_post(username: current_user['username'], id: params[:comment_post_id], comment: params[:comment])
+    if result['message']
+      redirect_to fyp_profile_path, notice: "Comment posted successfully!"
+    else
+      redirect_to fyp_profile_path, alert: result[:error] || "Failed to comment on post"
+    end
+  end
+
   def search
     @query = params[:q] || ''
     @filter = params[:filter] || 'user'
