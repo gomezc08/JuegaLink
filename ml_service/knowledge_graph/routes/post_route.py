@@ -195,6 +195,34 @@ def get_tagged_posts():
         return jsonify({"error": str(e)}), 500
 
 
+# Get posts from users that the current user follows (friends feed).
+@post_bp.route('/posts/friends-posts', methods=['POST'])
+def get_friends_posts():
+    """Get posts from users that the current user follows. Body: { username, offset?, page_size? }."""
+    try:
+        data = request.get_json(force=True, silent=True)
+        if not data or 'username' not in data:
+            return jsonify({"error": "Request body must be JSON with username"}), 400
+
+        username = data['username']
+        offset = int(data.get('offset', 0))
+        page_size = int(data.get('page_size', 20))
+
+        logger.info(f"<ml_service_run> Getting friends posts for user: {username} (offset={offset}, page_size={page_size})")
+        posts = post_service.get_friends_posts(username=username, offset=offset, page_size=page_size)
+
+        return jsonify({
+            "message": "Friends posts found successfully",
+            "posts": posts if posts else [],
+            "count": len(posts) if posts else 0
+        }), 200
+    except ValueError as e:
+        return jsonify({"error": "offset and page_size must be integers"}), 400
+    except Exception as e:
+        logger.error(f"<ml_service_run> Error getting friends posts: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+
 # User likes a post.
 @post_bp.route('/posts/like', methods=['POST'])
 def like_post():
