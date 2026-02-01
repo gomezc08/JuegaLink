@@ -1,5 +1,12 @@
 class FypController < ApplicationController
   def index
+    @posts = MlApiService.get_friends_posts(username: current_user['username'], offset: 0, page_size: 20)
+    if @posts && @posts['posts'].is_a?(Array)
+      @posts = @posts['posts']
+    else
+      @posts = []
+    end
+    @posts = @posts || []
   end
 
   def profile
