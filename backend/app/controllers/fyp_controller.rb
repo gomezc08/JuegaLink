@@ -125,6 +125,14 @@ class FypController < ApplicationController
     end
   end
 
+  def friends_posts
+    @posts = MlApiService.get_friends_posts(username: current_user['username'], offset: params[:offset], page_size: params[:page_size])
+    if @posts && @posts['posts'].is_a?(Array)
+      @posts = @posts['posts']
+    end
+    @posts = @posts || []
+  end
+
   def like_post
     unless current_user && current_user['username']
       redirect_to home_login_path, alert: "You must be logged in to like posts"
