@@ -45,10 +45,10 @@
                 <% end %>
               <% end %>
             <% end %>
-            <%= form_with url: fyp_comment_post_path, method: :post, local: true, class: "d-inline flex-grow-1" do |form| %>
+            <%= form_with url: fyp_comment_post_path, method: :post, local: true, class: "d-inline flex-grow-1 d-flex align-items-center", style: "gap: 8px;" do |form| %>
               <%= form.hidden_field :comment_post_id, value: @post['post_id'] %>
-              <%= form.text_field :comment, placeholder: (@has_commented ? "Add another comment..." : "Add a comment"), class: "form-control form-control-sm" %>
-              <%= form.button type: "submit", class: "btn btn-outline-secondary btn-sm" do %>
+              <%= form.text_field :comment, placeholder: (@has_commented ? "Add another comment..." : "Add a comment"), class: "form-control form-control-sm flex-grow-1" %>
+              <%= form.button type: "submit", class: "btn btn-outline-secondary btn-sm", style: "white-space: nowrap;" do %>
                 Post
               <% end %>
             <% end %>
@@ -66,6 +66,23 @@
                   <% end %>
                 </div>
               <% end %>
+            </div>
+          <% end %>
+
+          <% if @post['event_name_mention'].present? && @attendees.present? %>
+            <div class="border-top" style="padding: 12px 16px; background: #fafafa;">
+              <p class="small text-muted mb-2" style="font-weight: 600;"><i class="bi bi-people me-1"></i>In this post</p>
+              <div class="d-flex flex-wrap" style="gap: 8px;">
+                <% @attendees.each do |attendee| %>
+                  <% attendee_name = attendee.is_a?(Hash) ? attendee['username'] : attendee %>
+                  <%= link_to fyp_user_page_path(username: attendee_name), class: "d-flex align-items-center text-decoration-none", style: "gap: 6px;" do %>
+                    <div class="profile-picture" style="width: 24px; height: 24px; font-size: 11px;">
+                      <%= attendee_name&.first&.upcase || 'U' %>
+                    </div>
+                    <span class="small text-dark fw-semibold"><%= attendee_name %></span>
+                  <% end %>
+                <% end %>
+              </div>
             </div>
           <% end %>
 

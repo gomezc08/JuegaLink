@@ -14,7 +14,7 @@ class Post:
         self.connector = Connector()
     
     def create_post(self, title: str, content: str, event_name_mention: str, username: str):
-        """Create a new post in Neo4j database. Returns post data (including post_id)."""
+        """Create a new post in Neo4j database and tags attendees of the event. Returns post data (including post_id)."""
         # grab list of username(s) from event.
         user_username_mentions = self._get_user_username_mentions(event_name_mention)
 
@@ -29,20 +29,29 @@ class Post:
             driver = self.connector.connect()
 
             query = """
-            CREATE(p:Post{
+            MATCH (author:User {username: $username})
+            MATCH (e:Event {event_name: $event_name_mention})
+            CREATE (p:Post {
                 title: $title,
                 content: $content,
                 username: $username,
-                created_at: $created_at
+                created_at: $created_at,
+                event_name_mention: $event_name_mention
             })
-            CREATE (u:User {username: $username})-[:POSTED]->(p)
-            RETURN p, elementId(p) AS post_id
+            CREATE (author)-[:POSTED]->(p)
+            WITH p, e, author
+            MATCH (attendee:User)-[:JOINED|HOSTED_BY]-(e)
+            WHERE attendee <> author
+            CREATE (p)-[:TAGGED]->(attendee)
+            RETURN p, elementId(p) AS post_id, count(attendee) as tagged_count
             """
+
             params = {
                 "title": title,
                 "content": content,
                 "username": username,
-                "created_at": datetime.now().isoformat()
+                "created_at": datetime.now().isoformat(),
+                "event_name_mention": event_name_mention
             }
 
             logger.info(f"<post> Adding post to Neo4j DB: {params}")
@@ -166,7 +175,43 @@ class Post:
         finally:
             if driver:
                 driver.close()
-    
+
+    def get_tagged_posts(self, username: str):
+        """Get posts where user is tagged (MENTIONS_USER). Returns list of post dicts."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+
+            query = """
+            MATCH (p:Post)-[:MENTIONS_USER]->(u:User {username: $username})
+            OPTIONAL MATCH (author:User)-[:POSTED]->(p)
+            RETURN p, elementId(p) AS post_id, author.username AS author_username
+            ORDER BY p.created_at DESC
+            """
+            params = {"username": username}
+
+            logger.info(f"<post> Getting tagged posts for user from Neo4j DB: {params}")
+
+            result, summary, keys = driver.execute_query(query, params)
+
+            if result:
+                posts = []
+                for record in result:
+                    post_data = {**dict(record["p"]), "post_id": record["post_id"]}
+                    if record["author_username"]:
+                        post_data["author_username"] = record["author_username"]
+                    posts.append(post_data)
+                logger.info(f"<post> Tagged posts found in Neo4j DB: {posts}")
+                return posts
+            logger.info(f"<post> No tagged posts found in Neo4j DB for user: {username}")
+            return []
+        except Exception as e:
+            logger.error(f"<post> Error getting tagged posts for user from Neo4j DB: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
+
     def update_post(self, post_id: str, title: str = None, content: str = None):
         """Update post title/content. Returns updated post data dict or None."""
         driver = None

@@ -171,6 +171,30 @@ def get_user_posts():
         logger.error(f"<ml_service_run> Error getting user posts: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+
+# Get posts where user is tagged.
+@post_bp.route('/posts/tagged', methods=['POST'])
+def get_tagged_posts():
+    """Get posts where user is tagged (MENTIONS_USER). Body: { username }."""
+    try:
+        data = request.get_json(force=True, silent=True)
+        if not data or 'username' not in data:
+            return jsonify({"error": "Request body must be JSON with username"}), 400
+
+        username = data['username']
+        logger.info(f"<ml_service_run> Getting tagged posts for user: {username}")
+        posts = post_service.get_tagged_posts(username=username)
+
+        return jsonify({
+            "message": "Tagged posts found successfully",
+            "posts": posts if posts else [],
+            "count": len(posts) if posts else 0
+        }), 200
+    except Exception as e:
+        logger.error(f"<ml_service_run> Error getting tagged posts: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+
 # User likes a post.
 @post_bp.route('/posts/like', methods=['POST'])
 def like_post():
