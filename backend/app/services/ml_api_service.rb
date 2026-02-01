@@ -309,6 +309,30 @@ class MlApiService
       handle_response(response)
     end
 
+    def list_attendees(event_name:)
+      uri = URI("#{BASE_URL}/events/list-attendees")
+      http = Net::HTTP.new(uri.host, uri.port)
+      body = { event_name: event_name }.to_json
+      request = Net::HTTP::Post.new(uri.request_uri)
+      request['Content-Type'] = 'application/json'
+      request['Content-Length'] = body.bytesize.to_s
+      request.body = body
+      response = http.request(request)
+      handle_response(response)
+    end
+
+    def list_attendees_excluding_user(event_name:, username:)
+      uri = URI("#{BASE_URL}/events/list-attendees")
+      http = Net::HTTP.new(uri.host, uri.port)
+      body = { event_name: event_name, exclude_username: username }.to_json
+      request = Net::HTTP::Post.new(uri.request_uri)
+      request['Content-Type'] = 'application/json'
+      request['Content-Length'] = body.bytesize.to_s
+      request.body = body
+      response = http.request(request)
+      handle_response(response)
+    end
+
     def create_event(event_name:, username:, description:, date_time:, max_players:)
       uri = URI("#{BASE_URL}/events/create")
       http = Net::HTTP.new(uri.host, uri.port)

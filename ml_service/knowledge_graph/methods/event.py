@@ -120,6 +120,55 @@ class Event:
             if driver:
                 driver.close()
     
+    def get_all_attendees(self, event_name: str, exclude_username: str = None):
+        """Get all attendees of an event. Returns list of user dicts."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+
+            # HOSTED_BY: (Event)-[:HOSTED_BY]->(User)
+            # JOINED: (User)-[:JOINED]->(Event)
+            # Use UNION to handle both directions
+            if exclude_username is not None:
+                query = """
+                MATCH (e:Event {event_name: $event_name})-[:HOSTED_BY]->(u:User)
+                WHERE u.username <> $exclude_username
+                RETURN u
+                UNION
+                MATCH (u:User)-[:JOINED]->(e:Event {event_name: $event_name})
+                WHERE u.username <> $exclude_username
+                RETURN u
+                """
+                params = {
+                    "event_name": event_name,
+                    "exclude_username": exclude_username
+                }
+            else:
+                query = """
+                MATCH (e:Event {event_name: $event_name})-[:HOSTED_BY]->(u:User)
+                RETURN u
+                UNION
+                MATCH (u:User)-[:JOINED]->(e:Event {event_name: $event_name})
+                RETURN u
+                """
+                params = {
+                    "event_name": event_name
+                }
+
+            logger.info(f"<event> Getting all attendees of event: {event_name} from Neo4j DB")
+
+            result, summary, keys = driver.execute_query(query, params)
+
+            attendees = [self._serialize_event(dict(record['u'])) for record in result]
+            logger.info(f"<event> Found {len(attendees)} attendees of event: {event_name} in Neo4j DB")
+            return attendees
+        except Exception as e:
+            logger.error(f"<event> Error getting all attendees of event: {event_name} from Neo4j DB: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
+    
     def get_all_events_joined_by_user(self, username: str):
         """Get all events joined by user. Returns list of event dicts."""
         driver = None

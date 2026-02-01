@@ -285,6 +285,29 @@ def list_hosted_by_user():
         logger.error(f"<ml_service_run> Error listing events hosted by user: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+# grab all attendes of an event excluding certain user (if specified).
+@event_bp.route('/events/list-attendees', methods=['POST'])
+def list_attendees():
+    """Return all attendees of an event. Body: { event_name, exclude_username }."""
+    try:
+        data = request.get_json(force=True, silent=True)
+        if not data or 'event_name' not in data:
+            return jsonify({"error": "Request body must be JSON with event_name"}), 400
+        
+        event_name = data['event_name']
+        exclude_username = data.get('exclude_username', None)
+        
+        attendees = event_service.get_all_attendees(event_name=event_name, exclude_username=exclude_username)
+        return jsonify({
+            "message": "Attendees of event listed successfully",
+            "attendees": attendees,
+            "count": len(attendees)
+        }), 200
+    except Exception as e:
+        logger.error(f"<ml_service_run> Error listing attendees of event: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+
 # Event for sport route.
 @event_bp.route('/events/joined-by-user', methods=['POST'])
 def joined_by_user():

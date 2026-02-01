@@ -61,6 +61,17 @@ class FypController < ApplicationController
       comments_result = MlApiService.get_post_comments(id: params[:id])
       @comments = (comments_result && comments_result['comments'].is_a?(Array)) ? comments_result['comments'] : []
       @has_commented = current_user && current_user['username'] && @comments.any? { |c| c['username'] == current_user['username'] }
+      # Fetch attendees for the event if post mentions an event
+      @attendees = []
+      if @post['event_name_mention'].present?
+        current_username = current_user && current_user['username']
+        if current_username
+          attendees_result = MlApiService.list_attendees_excluding_user(event_name: @post['event_name_mention'], username: current_username)
+        else
+          attendees_result = MlApiService.list_attendees(event_name: @post['event_name_mention'])
+        end
+        @attendees = (attendees_result && attendees_result['attendees'].is_a?(Array)) ? attendees_result['attendees'] : []
+      end
     else
       redirect_to fyp_profile_path, alert: (result && (result['error'] || result[:error])) || "Failed to get post"
     end
@@ -154,6 +165,19 @@ class FypController < ApplicationController
     else
       redirect_to (post_id.present? ? fyp_post_path(post_id) : fyp_profile_path), alert: result['error'] || result[:error] || "Failed to comment on post"
     end
+  end
+
+ 
+  def list_attendees
+    @event_name = params[:event_name]
+    @attendees = MlApiService.list_attendees(event_name: @event_name)
+  end
+
+  def list_attendees_excluding_user
+    @event_name = params[:event_name]
+    @username = params[:username]
+    @attendees = MlApiService.list_attendees_excluding_user(event_name: @event_name, username: @username)
+    @attendees = @attendees['attendees'] || []
   end
 
   def search

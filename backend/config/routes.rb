@@ -42,6 +42,8 @@ Rails.application.routes.draw do
   # event.
   get "fyp/event_page/:event_name", to: "fyp#event_page", as: :fyp_event_page
   get "fyp/create_event", to: "fyp#create_event", as: :fyp_create_event
+  get "fyp/list_attendees/:event_name", to: "fyp#list_attendees", as: :fyp_list_attendees
+  get "fyp/list_attendees_excluding_user/:event_name/:username", to: "fyp#list_attendees_excluding_user", as: :fyp_list_attendees_excluding_user
   post "fyp/create_event", to: "fyp#create_event_post", as: :fyp_create_event_post
   post "fyp/join_event", to: "fyp#join_event", as: :fyp_join_event
   post "fyp/unjoin_event", to: "fyp#unjoin_event", as: :fyp_unjoin_event
