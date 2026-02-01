@@ -14,7 +14,7 @@ class Post:
         self.connector = Connector()
     
     def create_post(self, title: str, content: str, event_name_mention: str, username: str):
-        """Create a new post in Neo4j database. Returns post data (including post_id)."""
+        """Create a new post in Neo4j database and tags attendees of the event. Returns post data (including post_id)."""
         # grab list of username(s) from event.
         user_username_mentions = self._get_user_username_mentions(event_name_mention)
 
@@ -29,20 +29,29 @@ class Post:
             driver = self.connector.connect()
 
             query = """
-            CREATE(p:Post{
+            MATCH (author:User {username: $username})
+            MATCH (e:Event {event_name: $event_name_mention})
+            CREATE (p:Post {
                 title: $title,
                 content: $content,
                 username: $username,
-                created_at: $created_at
+                created_at: $created_at,
+                event_name_mention: $event_name_mention
             })
-            CREATE (u:User {username: $username})-[:POSTED]->(p)
-            RETURN p, elementId(p) AS post_id
+            CREATE (author)-[:POSTED]->(p)
+            WITH p, e, author
+            MATCH (attendee:User)-[:JOINED|HOSTED_BY]-(e)
+            WHERE attendee <> author
+            CREATE (p)-[:TAGGED]->(attendee)
+            RETURN p, elementId(p) AS post_id, count(attendee) as tagged_count
             """
+
             params = {
                 "title": title,
                 "content": content,
                 "username": username,
-                "created_at": datetime.now().isoformat()
+                "created_at": datetime.now().isoformat(),
+                "event_name_mention": event_name_mention
             }
 
             logger.info(f"<post> Adding post to Neo4j DB: {params}")
