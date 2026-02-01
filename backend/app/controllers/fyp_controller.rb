@@ -7,16 +7,19 @@ class FypController < ApplicationController
     if @user && @user['username']
       @followers_count = MlApiService.get_user_followers_count(username: @user['username']) || 0
       @following_count = MlApiService.get_user_following_count(username: @user['username']) || 0
+
+      # Fetch user's own posts
+      result = MlApiService.get_user_posts(username: @user['username'])
+      @posts = (result && result['posts'].is_a?(Array)) ? result['posts'] : []
+
+      # Fetch posts where user is tagged
+      tagged_result = MlApiService.get_tagged_posts(username: @user['username'])
+      @tagged_posts = (tagged_result && tagged_result['posts'].is_a?(Array)) ? tagged_result['posts'] : []
     else
       @followers_count = 0
       @following_count = 0
-    end
-
-    result = MlApiService.get_user_posts(username: @user['username'])
-    if result && result['posts'].is_a?(Array)
-      @posts = result['posts']
-    else
       @posts = []
+      @tagged_posts = []
     end
   end
 
