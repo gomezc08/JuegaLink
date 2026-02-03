@@ -18,20 +18,34 @@ class RAG:
             password=os.getenv("NEO4J_PASSWORD"),
             database=os.getenv("NEO4J_DATABASE")
         )
+        self.history = []  # list of (user_msg, assistant_msg) for conversation context
         self.rag_chain = self.create_rag_chain(username)
-    
+
     def create_rag_chain(self, username: str):
         # define llm.
         llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
-        # QA prompt: only "context" and "question" are passed by GraphCypherQAChain.
-        # Username is embedded in the template at chain creation time.
+        # Build history string from self.history; embed in template (chain only passes context/question).
+        if self.history:
+            history_lines = [
+                f"User: {u}\nAssistant: {a}" for u, a in self.history
+            ]
+            history_block = "Previous conversation:\n" + "\n\n".join(history_lines)
+        else:
+            history_block = "No previous conversation yet."
+
         qa_prompt = PromptTemplate(
             input_variables=["context", "question"],
             template="""You are a helpful assistant that answers questions based on the provided context from a Neo4j graph database query in a friendly and conversational manner.
 
-        You are talking to """ + username + """.
-        
+        You are talking to """
+            + username
+            + """.
+
+        """
+            + history_block
+            + """
+
         The context below contains the DIRECT RESULTS from a Cypher query that was executed to answer the question. The context IS the answer to the question.
 
         Context (query results):
@@ -63,7 +77,11 @@ class RAG:
         return chain
     
     def query_rag_chain(self, query: str, username: str):
+        # Refresh chain so the QA prompt includes latest conversation history.
+        self.rag_chain = self.create_rag_chain(username)
         # Inject username into the query so the Cypher generator uses it (not a placeholder).
         query_with_user = f"{query} [Current user's username in the database is: {username}]"
         result = self.rag_chain.invoke({"query": query_with_user})
-        return result["result"]
+        answer = result.get("result", result)
+        self.history.append((query, answer))
+        return answer
