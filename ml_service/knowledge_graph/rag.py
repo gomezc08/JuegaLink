@@ -1,4 +1,6 @@
-from .connector import Connector
+import sys
+from pathlib import Path
+from knowledge_graph.connector import Connector
 from langchain_openai import ChatOpenAI
 from langchain_classic.chains import GraphCypherQAChain
 from langchain_community.graphs import Neo4jGraph
@@ -57,9 +59,4 @@ class RAG:
     
     def query_rag_chain(self, query:str):
         result = self.rag_chain.invoke({"query": query})
-        return result
-
-if __name__ == "__main__":
-    rag = RAG()
-    result = rag.query_rag_chain("Who are john's friends?")
-    print(result)
+        return result['result']
