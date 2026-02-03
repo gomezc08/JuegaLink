@@ -14,18 +14,21 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 
-rag_service = RAG()
 
 rag_bp = Blueprint('rag', __name__)
 
 # RAG route.
 @rag_bp.route('/query', methods=['POST'])
 def query_rag():
-    """Query the RAG. Body: { query }."""
+    """Query the RAG. Body: { username, query }."""
     try:
         data = request.get_json()
-        query = data['query']
-        result = rag_service.query_rag_chain(query)
+        
+        if 'username' not in data or 'query' not in data:
+            return jsonify({"error": "Missing required fields"}), 400
+
+        rag_service = RAG(username=data["username"])
+        result = rag_service.query_rag_chain(data["query"], data["username"])
         logger.info(f"<ml_service_run> RAG query result: {result}")
         return jsonify({
             "message": "RAG query successful",

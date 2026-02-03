@@ -9,7 +9,7 @@ import os
 from dotenv import load_dotenv
 
 class RAG:
-    def __init__(self):
+    def __init__(self, username: str):
         load_dotenv()
         self.connector = Connector()
         self.graph = Neo4jGraph(
@@ -18,18 +18,20 @@ class RAG:
             password=os.getenv("NEO4J_PASSWORD"),
             database=os.getenv("NEO4J_DATABASE")
         )
-        self.rag_chain = self.create_rag_chain()
+        self.rag_chain = self.create_rag_chain(username)
     
-    def create_rag_chain(self):
+    def create_rag_chain(self, username: str):
         # define llm.
         llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
-        # create custom QA prompt that better handles context
-        # The context comes as a list of dicts from the Cypher query results
+        # QA prompt: only "context" and "question" are passed by GraphCypherQAChain.
+        # Username is embedded in the template at chain creation time.
         qa_prompt = PromptTemplate(
             input_variables=["context", "question"],
             template="""You are a helpful assistant that answers questions based on the provided context from a Neo4j graph database query in a friendly and conversational manner.
 
+        You are talking to """ + username + """.
+        
         The context below contains the DIRECT RESULTS from a Cypher query that was executed to answer the question. The context IS the answer to the question.
 
         Context (query results):
@@ -37,6 +39,8 @@ class RAG:
 
         Question: {question}
 
+        IMPORTANT: if the question is not related to """ + username + """ (or is information that """ + username + """ should not know), politely decline to answer and ask if there is anything else you can help with.
+        
         Instructions:
         - The context contains the answer to the question. Extract and present the information clearly.
         - If the context shows usernames, names, or other data, that IS the answer.
@@ -58,6 +62,8 @@ class RAG:
 
         return chain
     
-    def query_rag_chain(self, query:str):
-        result = self.rag_chain.invoke({"query": query})
-        return result['result']
+    def query_rag_chain(self, query: str, username: str):
+        # Inject username into the query so the Cypher generator uses it (not a placeholder).
+        query_with_user = f"{query} [Current user's username in the database is: {username}]"
+        result = self.rag_chain.invoke({"query": query_with_user})
+        return result["result"]
