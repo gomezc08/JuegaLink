@@ -285,6 +285,18 @@ class MlApiService
       handle_response(response)
     end
 
+    def get_friends_posts(username:, offset:, page_size:)
+      uri = URI("#{BASE_URL}/posts/friends-posts")
+      http = Net::HTTP.new(uri.host, uri.port)
+      body = { username: username, offset: offset, page_size: page_size }.to_json
+      request = Net::HTTP::Post.new(uri.request_uri)
+      request['Content-Type'] = 'application/json'
+      request['Content-Length'] = body.bytesize.to_s
+      request.body = body
+      response = http.request(request)
+      handle_response(response)
+    end
+
     def get_tagged_posts(username:)
       uri = URI("#{BASE_URL}/posts/tagged")
       http = Net::HTTP.new(uri.host, uri.port)

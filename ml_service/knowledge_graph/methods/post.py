@@ -387,6 +387,41 @@ class Post:
         finally:
             if driver:
                 driver.close()
+    
+
+    def get_friends_posts(self, username: str, offset: int = 0, page_size: int = 20):
+        """Get posts from users that the current user follows. Returns list of post dicts with post_id and author_username."""
+        driver = None
+        try:
+            driver = self.connector.connect()
+            query = """
+            MATCH (me:User {username: $username})-[:FOLLOWS]->(friend:User)-[:POSTED]->(post:Post)
+            RETURN post, elementId(post) AS post_id, friend.username AS author_username
+            ORDER BY post.created_at DESC
+            SKIP $offset LIMIT $page_size
+            """
+            params = {"username": username, "offset": offset, "page_size": page_size}
+            logger.info(f"<post> Getting friends posts for user: {params}")
+
+            result, summary, keys = driver.execute_query(query, params)
+
+            if result:
+                posts = []
+                for record in result:
+                    post_data = {**dict(record["post"]), "post_id": record["post_id"]}
+                    if record.get("author_username"):
+                        post_data["author_username"] = record["author_username"]
+                    posts.append(post_data)
+                logger.info(f"<post> Friends posts found in Neo4j DB: {len(posts)} posts")
+                return posts
+            logger.info(f"<post> No friends posts found in Neo4j DB for user: {username}")
+            return []
+        except Exception as e:
+            logger.error(f"<post> Error getting friends posts for user from Neo4j DB: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
 
     def _get_user_username_mentions(self, event_name_mention: str):
         """Get list of username(s) linked to event via JOINED"""

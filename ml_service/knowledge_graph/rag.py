@@ -1,4 +1,6 @@
-from .connector import Connector
+import sys
+from pathlib import Path
+from knowledge_graph.connector import Connector
 from langchain_openai import ChatOpenAI
 from langchain_classic.chains import GraphCypherQAChain
 from langchain_community.graphs import Neo4jGraph
@@ -7,7 +9,7 @@ import os
 from dotenv import load_dotenv
 
 class RAG:
-    def __init__(self):
+    def __init__(self, username: str):
         load_dotenv()
         self.connector = Connector()
         self.graph = Neo4jGraph(
@@ -16,17 +18,33 @@ class RAG:
             password=os.getenv("NEO4J_PASSWORD"),
             database=os.getenv("NEO4J_DATABASE")
         )
-        self.rag_chain = self.create_rag_chain()
-    
-    def create_rag_chain(self):
+        self.history = []  # list of (user_msg, assistant_msg) for conversation context
+        self.rag_chain = self.create_rag_chain(username)
+
+    def create_rag_chain(self, username: str):
         # define llm.
         llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
-        # create custom QA prompt that better handles context
-        # The context comes as a list of dicts from the Cypher query results
+        # Build history string from self.history; embed in template (chain only passes context/question).
+        if self.history:
+            history_lines = [
+                f"User: {u}\nAssistant: {a}" for u, a in self.history
+            ]
+            history_block = "Previous conversation:\n" + "\n\n".join(history_lines)
+        else:
+            history_block = "No previous conversation yet."
+
         qa_prompt = PromptTemplate(
             input_variables=["context", "question"],
-            template="""You are a helpful assistant that answers questions based on the provided context from a Neo4j graph database query.
+            template="""You are a helpful assistant that answers questions based on the provided context from a Neo4j graph database query in a friendly and conversational manner.
+
+        You are talking to """
+            + username
+            + """.
+
+        """
+            + history_block
+            + """
 
         The context below contains the DIRECT RESULTS from a Cypher query that was executed to answer the question. The context IS the answer to the question.
 
@@ -35,11 +53,14 @@ class RAG:
 
         Question: {question}
 
+        IMPORTANT: if the question is not related to """ + username + """ (or is information that """ + username + """ should not know), politely decline to answer and ask if there is anything else you can help with.
+        
         Instructions:
         - The context contains the answer to the question. Extract and present the information clearly.
         - If the context shows usernames, names, or other data, that IS the answer.
         - Format your response naturally, listing the information from the context.
         - If the context is empty [], you may assume the user is asking a question with no answer.
+        - Try to ask follow-up questions after you have answered the question (keep the conversation going and be engaging).
 
         Answer:"""
         )
@@ -55,11 +76,12 @@ class RAG:
 
         return chain
     
-    def query_rag_chain(self, query:str):
-        result = self.rag_chain.invoke({"query": query})
-        return result
-
-if __name__ == "__main__":
-    rag = RAG()
-    result = rag.query_rag_chain("Who are john's friends?")
-    print(result)
+    def query_rag_chain(self, query: str, username: str):
+        # Refresh chain so the QA prompt includes latest conversation history.
+        self.rag_chain = self.create_rag_chain(username)
+        # Inject username into the query so the Cypher generator uses it (not a placeholder).
+        query_with_user = f"{query} [Current user's username in the database is: {username}]"
+        result = self.rag_chain.invoke({"query": query_with_user})
+        answer = result.get("result", result)
+        self.history.append((query, answer))
+        return answer

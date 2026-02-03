@@ -31,6 +31,7 @@ Rails.application.routes.draw do
 
   # post.
   get "fyp/post/:id", to: "fyp#post", as: :fyp_post
+  get "fyp/friends_posts", to: "fyp#friends_posts", as: :fyp_friends_posts
   post "fyp/create_post", to: "fyp#create_post_post", as: :fyp_create_post_post
   delete "fyp/delete_post", to: "fyp#delete_post", as: :fyp_delete_post
 

@@ -1,5 +1,12 @@
 class FypController < ApplicationController
   def index
+    @posts = MlApiService.get_friends_posts(username: current_user['username'], offset: 0, page_size: 20)
+    if @posts && @posts['posts'].is_a?(Array)
+      @posts = @posts['posts']
+    else
+      @posts = []
+    end
+    @posts = @posts || []
   end
 
   def profile
@@ -123,6 +130,14 @@ class FypController < ApplicationController
     else
       redirect_to fyp_profile_path, alert: result[:error] || "Failed to delete post"
     end
+  end
+
+  def friends_posts
+    @posts = MlApiService.get_friends_posts(username: current_user['username'], offset: params[:offset], page_size: params[:page_size])
+    if @posts && @posts['posts'].is_a?(Array)
+      @posts = @posts['posts']
+    end
+    @posts = @posts || []
   end
 
   def like_post
