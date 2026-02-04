@@ -28,6 +28,7 @@
 
   <body class="d-flex flex-column min-vh-100">
     <%= render 'home/header' %>
+    <%= render 'shared/chatbot' %>
 
     <div class="container flex-grow-1 <%= 'pb-5' unless user_signed_in? %>">
       <% if flash[:notice] %>
