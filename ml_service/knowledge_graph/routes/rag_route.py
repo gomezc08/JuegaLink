@@ -35,7 +35,7 @@ def query_rag():
         # Reuse this user's history so the RAG retains conversation across requests.
         history = _user_histories.setdefault(username, [])
         rag_service = RAG(username=username, history=history)
-        result = rag_service.query_rag_chain(data["query"])
+        result = rag_service.query_rag_chain(data["query"], username)
         logger.info(f"<ml_service_run> RAG query result: {result}")
         return jsonify({
             "message": "RAG query successful",
