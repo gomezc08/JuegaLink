@@ -4,7 +4,7 @@ from flask_cors import CORS
 import os
 import logging
 
-from knowledge_graph.rag import RAG
+from ml_service.knowledge_graph.rag.rag_chain import RAGChain
 
 logging.basicConfig(
     level=logging.INFO,
@@ -13,7 +13,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 load_dotenv()
-
 
 rag_bp = Blueprint('rag', __name__)
 
@@ -34,7 +33,7 @@ def query_rag():
         username = data["username"]
         # Reuse this user's history so the RAG retains conversation across requests.
         history = _user_histories.setdefault(username, [])
-        rag_service = RAG(username=username, history=history)
+        rag_service = RAGChain(username=username, history=history)
         result = rag_service.query_rag_chain(data["query"], username)
         logger.info(f"<ml_service_run> RAG query result: {result}")
         return jsonify({

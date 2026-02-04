@@ -16,7 +16,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-class RAG:
+class RAGChain:
     # Max (user, assistant) pairs to keep in context so prompts don't grow unbounded.
     MAX_HISTORY_PAIRS = 10
 
