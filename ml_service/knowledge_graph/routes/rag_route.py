@@ -17,6 +17,10 @@ load_dotenv()
 
 rag_bp = Blueprint('rag', __name__)
 
+# Per-user conversation history: username -> list of (user_msg, assistant_msg).
+# In-memory; survives across requests for the same process.
+_user_histories = {}
+
 # RAG route.
 @rag_bp.route('/query', methods=['POST'])
 def query_rag():
@@ -27,8 +31,11 @@ def query_rag():
         if 'username' not in data or 'query' not in data:
             return jsonify({"error": "Missing required fields"}), 400
 
-        rag_service = RAG(username=data["username"])
-        result = rag_service.query_rag_chain(data["query"], data["username"])
+        username = data["username"]
+        # Reuse this user's history so the RAG retains conversation across requests.
+        history = _user_histories.setdefault(username, [])
+        rag_service = RAG(username=username, history=history)
+        result = rag_service.query_rag_chain(data["query"])
         logger.info(f"<ml_service_run> RAG query result: {result}")
         return jsonify({
             "message": "RAG query successful",

@@ -9,8 +9,14 @@ import os
 from dotenv import load_dotenv
 
 class RAG:
-    def __init__(self, username: str):
+    # Max (user, assistant) pairs to keep in context so prompts don't grow unbounded.
+    MAX_HISTORY_PAIRS = 10
+
+    def __init__(self, username: str, history: list = None):
         load_dotenv()
+        self.username = username
+        # Use shared history list if provided (for cross-request retention); otherwise in-memory only for this instance.
+        self.history = history if history is not None else []
         self.connector = Connector()
         self.graph = Neo4jGraph(
             url=os.getenv("NEO4J_URI"),
@@ -18,7 +24,6 @@ class RAG:
             password=os.getenv("NEO4J_PASSWORD"),
             database=os.getenv("NEO4J_DATABASE")
         )
-        self.history = []  # list of (user_msg, assistant_msg) for conversation context
         self.rag_chain = self.create_rag_chain(username)
 
     def create_rag_chain(self, username: str):
@@ -76,7 +81,8 @@ class RAG:
 
         return chain
     
-    def query_rag_chain(self, query: str, username: str):
+    def query_rag_chain(self, query: str, username: str = None):
+        username = username or self.username
         # Refresh chain so the QA prompt includes latest conversation history.
         self.rag_chain = self.create_rag_chain(username)
         # Inject username into the query so the Cypher generator uses it (not a placeholder).
@@ -84,4 +90,7 @@ class RAG:
         result = self.rag_chain.invoke({"query": query_with_user})
         answer = result.get("result", result)
         self.history.append((query, answer))
+        # Keep only last N pairs so context doesn't grow forever.
+        if len(self.history) > self.MAX_HISTORY_PAIRS:
+            self.history = self.history[-self.MAX_HISTORY_PAIRS :]
         return answer
