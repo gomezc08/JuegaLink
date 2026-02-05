@@ -29,6 +29,51 @@
                   <%= form.text_field :phone_no, class: "form-control", placeholder: "(123) 456-7890", value: @user['phone_no'] || '' %>
                 </div>
               </div>
+
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <%= form.label :favorite_sport, "Favorite Sport", class: "form-label" %>
+                  <%= form.select :favorite_sport,
+                      options_for_select([
+                        ['Soccer', 'Soccer'],
+                        ['Basketball', 'Basketball'],
+                        ['Tennis', 'Tennis'],
+                        ['Baseball', 'Baseball'],
+                        ['Volleyball', 'Volleyball'],
+                        ['American Football', 'American Football'],
+                        ['Golf', 'Golf'],
+                        ['Swimming', 'Swimming'],
+                        ['Running', 'Running'],
+                        ['Cycling', 'Cycling'],
+                        ['Hockey', 'Hockey'],
+                        ['Cricket', 'Cricket'],
+                        ['Rugby', 'Rugby'],
+                        ['Badminton', 'Badminton'],
+                        ['Boxing', 'Boxing'],
+                        ['Martial Arts', 'Martial Arts'],
+                        ['Skating', 'Skating'],
+                        ['Skiing', 'Skiing'],
+                        ['Surfing', 'Surfing'],
+                        ['Weightlifting', 'Weightlifting'],
+                        ['Yoga', 'Yoga']
+                      ], @user['favorite_sport'] || ''),
+                      { include_blank: 'Select favorite sport' },
+                      { class: "form-control" } %>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                  <%= form.label :competitive_level, "Competitive Level", class: "form-label" %>
+                  <%= form.select :competitive_level, 
+                      options_for_select([
+                        ['Beginner', 'Beginner'],
+                        ['Intermediate', 'Intermediate'],
+                        ['Advanced', 'Advanced'],
+                        ['Competitive', 'Competitive']
+                      ], @user['competitive_level'] || ''),
+                      { include_blank: 'Select competitive level' },
+                      { class: "form-control" } %>
+                </div>
+              </div>
               
               <div class="row">
                 <div class="col-md-6 mb-3">

@@ -86,8 +86,8 @@ class User:
                 driver.close()
 
     def update_user(self, username: str, age: int = None, city: str = None, 
-                    state: str = None, bio: str = None, email: str = None, 
-                    phone_no: str = None):
+                    state: str = None, favorite_sport: str = None, competitive_level: str = None, 
+                    bio: str = None, email: str = None, phone_no: str = None):
         """Update user information in Neo4j. Returns updated user data."""
         driver = None
         try:
@@ -105,6 +105,12 @@ class User:
             if state is not None:
                 updates.append("u.state = $state")
                 params["state"] = state
+            if favorite_sport is not None:
+                updates.append("u.favorite_sport = $favorite_sport")
+                params["favorite_sport"] = favorite_sport
+            if competitive_level is not None:
+                updates.append("u.competitive_level = $competitive_level")
+                params["competitive_level"] = competitive_level
             if bio is not None:
                 updates.append("u.bio = $bio")
                 params["bio"] = bio
