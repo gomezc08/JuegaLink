@@ -30,7 +30,6 @@ class DocumentIngestion:
         )
         self.data_path = None
     
-    
     @staticmethod
     def load_pdf(file_path: Union[Path, str]) -> List[Document]:
         """
