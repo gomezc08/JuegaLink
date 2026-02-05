@@ -26,9 +26,9 @@ class Nodes:
         Returns:
             State
         """
-        docs = self.retriever.invoke(state.query)
+        docs = self.retriever.invoke(state.question)
         return State (
-            query = state.query,
+            question = state.question,
             retrieved_docs = docs
         )
 
@@ -39,8 +39,8 @@ class Nodes:
             List of tools
         """
         # 1. retriever tool.
-        def retriever_tool_fn(query: str) -> str:
-            docs: List[Document] = self.retriever.invoke(query)
+        def retriever_tool_fn(question: str) -> str:
+            docs: List[Document] = self.retriever.invoke(question)
             if not docs:
                 return "No documents found."
             merged = []
@@ -51,11 +51,11 @@ class Nodes:
             return "\n\n".join(merged)
         
         # 2. wikipedia tool.
-        def wikipedia_tool_fn(query: str) -> str:
+        def wikipedia_tool_fn(question: str) -> str:
             wikipedia = WikipediaAPIWrapper(
                 api_wrapper = WikipediaAPIWrapper(top_k_results=3, lang = "en")
             )
-            return wikipedia.run(query)
+            return wikipedia.run(question)
         
         # create tools.
         retriever_tool = Tool(
@@ -102,7 +102,7 @@ class Nodes:
             self.build_agent()
         
         # invoke the agent.
-        result = self.agent.invoke({"messages": [HumanMessage(content = state.query)]})
+        result = self.agent.invoke({"messages": [HumanMessage(content = state.question)]})
 
         messages = result.get("messages", [])
         answer: Optional[str] = None
@@ -111,7 +111,7 @@ class Nodes:
             answer = getattr(answer_msg, "content", None)
         
         return State(
-            query=state.query,
+            question=state.question,
             retrieved_docs=state.retrieved_docs,
             answer=answer or "Could not generate answer."
         )
