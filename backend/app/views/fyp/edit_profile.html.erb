@@ -29,6 +29,18 @@
                   <%= form.text_field :phone_no, class: "form-control", placeholder: "(123) 456-7890", value: @user['phone_no'] || '' %>
                 </div>
               </div>
+
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <%= form.label :favorite_sport, "Favorite Sport", class: "form-label" %>
+                  <%= form.text_field :favorite_sport, class: "form-control", placeholder: "Favorite Sport", value: @user['favorite_sport'] || '' %>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                  <%= form.label :competitive_level, "Competitive Level", class: "form-label" %>
+                  <%= form.text_field :competitive_level, class: "form-control", placeholder: "Competitive Level", value: @user['competitive_level'] || '' %>
+                </div>
+              </div>
               
               <div class="row">
                 <div class="col-md-6 mb-3">

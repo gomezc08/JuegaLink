@@ -50,6 +50,8 @@ class FypController < ApplicationController
       age: params[:age].present? ? params[:age].to_i : nil,
       city: params[:city],
       state: params[:state],
+      favorite_sport: params[:favorite_sport],
+      competitive_level: params[:competitive_level],
       phone_no: params[:phone_no]
     )
 
