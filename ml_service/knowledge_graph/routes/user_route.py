@@ -105,6 +105,8 @@ def update_user():
             age=data.get('age'),
             city=data.get('city'),
             state=data.get('state'),
+            favorite_sport=data.get('favorite_sport', None),
+            competitive_level=data.get('competitive_level', None),
             bio=data.get('bio'),
             email=data.get('email'),
             phone_no=data.get('phone_no')
