@@ -7,23 +7,15 @@ from langchain_community.graphs import Neo4jGraph
 from langchain_core.prompts import PromptTemplate
 import os
 from dotenv import load_dotenv
-import logging
 from langchain_core.output_parsers import StrOutputParser
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(message)s'
-)
-logger = logging.getLogger(__name__)
 
 class RAGChain:
     # Max (user, assistant) pairs to keep in context so prompts don't grow unbounded.
     MAX_HISTORY_PAIRS = 10
 
-    def __init__(self, username: str, history: list = None):
+    def __init__(self, username: str = None, history: list = None):
         load_dotenv()
         self.username = username
-        # Use shared history list if provided (for cross-request retention); otherwise in-memory only for this instance.
         self.history = history if history is not None else []
         self.connector = Connector()
         self.graph = Neo4jGraph(
@@ -73,26 +65,21 @@ class RAGChain:
 
         return chain
 
-    def query_rag_chain(self, query: str, username: str = None):
+    def query_rag_chain(self, query: str, username: str = None, update_history: bool = True):
         username = username or self.username
-        
-        # refine query. 
+
+        # refine query.
         query = self._refine_query(query, username)
 
         # create RAG chain.
         self.rag_chain = self.create_rag_chain(username)
-        
+
         # execute rag chain. Chain only accepts "query"; it passes context + question to QA step.
         result = self.rag_chain.invoke({"query": query})
         answer = result.get("result", result)
-        
-        # logs.
-        logger.info(f"<rag> here is the query: {query}")
-        logger.info(f"<rag> here is the raw result: {result}")
-        logger.info(f"<rag> here is the answer: {answer}")
 
-        # update history.
-        self._add_to_history(query, answer)
+        if update_history:
+            self._add_to_history(query, answer)
         return answer
     
     def _refine_query(self, query: str, username: str = None):
@@ -115,7 +102,12 @@ class RAGChain:
             """
         )
         chain = prompt | self.llm | StrOutputParser()
-        result = chain.invoke({"query": query, "username": username, "history": self.history})
+        history_str = (
+            "\n".join(f"User: {q}\nAssistant: {a}" for q, a in self.history)
+            if self.history
+            else "None yet."
+        )
+        result = chain.invoke({"query": query, "username": username, "history": history_str})
         return result
     
     def _add_to_history(self, query: str, answer: str):

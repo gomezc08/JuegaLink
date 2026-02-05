@@ -1,21 +1,41 @@
 """LangGraph nodes for RAG workflow + ReAct Agent inside generate_content"""
 
+import logging
 from typing import List, Optional
 from .state import State
 
+logger = logging.getLogger(__name__)
+
 from langchain_core.documents import Document
 from langchain_core.tools import Tool
-from langchain_core.messages import HumanMessage
-from langchain.agents import create_agent
+from langchain_core.messages import HumanMessage, AIMessage
+from .rag_chain import RAGChain
 
-# Wikipedia tool
-from langchain_community.utilities import WikipediaAPIWrapper
-from langchain_community.tools.wikipedia.tool import WikipediaQueryRun
+try:
+    from langgraph.prebuilt import create_react_agent
+    _HAS_REACT_AGENT = True
+except Exception:
+    _HAS_REACT_AGENT = False
+
+try:
+    from langchain_community.utilities import WikipediaAPIWrapper
+    _HAS_WIKI = True
+except Exception:
+    _HAS_WIKI = False
+
+
+class _StubRetriever:
+    def invoke(self, query: str) -> List[Document]:
+        return []
+
 
 class Nodes:
-    def __init__(self, retriever, llm):
-        self.retriever = retriever
+    def __init__(self, retriever, llm, username: str = None, history: list = None):
+        self.retriever = retriever if retriever is not None else _StubRetriever()
         self.llm = llm
+        self.username = username or ""
+        self.history = history if history is not None else []
+        self.rag_chain = RAGChain(username=self.username, history=self.history)
         self.agent = None
     
     def retrieve_docs(self, state: State) -> State:
@@ -27,10 +47,7 @@ class Nodes:
             State
         """
         docs = self.retriever.invoke(state.question)
-        return State (
-            question = state.question,
-            retrieved_docs = docs
-        )
+        return State(question=state.question, retrieved_docs=docs)
 
     def build_tools(self) -> List[Tool]:
         """
@@ -50,68 +67,78 @@ class Nodes:
                 merged.append(f"[{i}] {title}\n{d.page_content}")
             return "\n\n".join(merged)
         
-        # 2. wikipedia tool.
+        # 2. Graph Cypher QA Chain – user/graph lookups
+        def graph_cypher_qa_chain_tool_fn(question: str) -> str:
+            return self.rag_chain.query_rag_chain(question, update_history=False)
+
+        # 3. Wikipedia
         def wikipedia_tool_fn(question: str) -> str:
-            wikipedia = WikipediaAPIWrapper(
-                api_wrapper = WikipediaAPIWrapper(top_k_results=3, lang = "en")
-            )
-            return wikipedia.run(question)
-        
-        # create tools.
-        retriever_tool = Tool(
-            name = "retriever",
-            func = retriever_tool_fn,
-            description = "Retrieve documents from the retriever"
-        )
+            if not _HAS_WIKI:
+                return "Wikipedia not available."
+            try:
+                wrapper = WikipediaAPIWrapper(top_k_results=3, lang="en")
+                return wrapper.run(question)
+            except Exception as e:
+                return f"Wikipedia error: {e}"
 
-        wikipedia_tool = Tool(
-            name = "wikipedia",
-            func = wikipedia_tool_fn,
-            description = "Search Wikipedia for information"
-        )
-
-        return [retriever_tool, wikipedia_tool]
+        return [
+            Tool(
+                name="juegalink_retriever",
+                func=retriever_tool_fn,
+                description="Retrieve JuegaLink documentation: app basics, how to use features, account, events, fields. Use for questions about what JuegaLink is or how it works.",
+            ),
+            Tool(
+                name="graph_cypher_qa",
+                func=graph_cypher_qa_chain_tool_fn,
+                description="Query the current user's graph: friends count, my events, who I follow, my posts. Use for questions about the logged-in user (e.g. 'how many friends do I have?', 'what events am I in?').",
+            ),
+            Tool(
+                name="wikipedia",
+                func=wikipedia_tool_fn,
+                description="Search Wikipedia for general knowledge. Use for factual or encyclopedic questions not about JuegaLink or the user.",
+            ),
+        ]
     
     def build_agent(self):
-        """
-        Build the ReAct Agent
-        Returns:
-            ReAct Agent
-        """
         tools = self.build_tools()
-        system_prompt = """
-            "You are a helpful RAG agent."
-            "Prefer 'retriever' for user-provided docs; use 'wikipedia' for general knowledge."
-            "Return only the final useful answer, do not include any other text."
-        """
-        self.agent = create_agent(
-            llm = self.llm,
-            tools = tools,
-            prompt = system_prompt
-        )
-    
+        if _HAS_REACT_AGENT:
+            self.agent = create_react_agent(self.llm, tools)
+        else:
+            self.agent = None
+
     def generate_answer(self, state: State) -> State:
-        """
-        Generate answer using the ReAct Agent
-        Args:
-            state: State
-        Returns:
-            State
-        """
         if self.agent is None:
             self.build_agent()
-        
-        # invoke the agent.
-        result = self.agent.invoke({"messages": [HumanMessage(content = state.question)]})
 
-        messages = result.get("messages", [])
-        answer: Optional[str] = None
-        if messages:
-            answer_msg = messages[-1]
-            answer = getattr(answer_msg, "content", None)
-        
+        if self.agent is not None:
+            # Include conversation history so the agent has context
+            messages = []
+            for q, a in self.history:
+                messages.append(HumanMessage(content=q))
+                messages.append(AIMessage(content=a))
+            messages.append(HumanMessage(content=state.question))
+            result = self.agent.invoke({"messages": messages})
+            messages = result.get("messages", [])
+            # Log which tools were used
+            tools_used = []
+            for msg in messages:
+                if hasattr(msg, "tool_calls") and msg.tool_calls:
+                    for tc in msg.tool_calls:
+                        name = tc.get("name") if isinstance(tc, dict) else getattr(tc, "name", None)
+                        if name:
+                            tools_used.append(name)
+            if tools_used:
+                logger.info("RAG agent tools used: %s", tools_used)
+            answer = None
+            if messages:
+                last = messages[-1]
+                answer = getattr(last, "content", None)
+            answer = answer or "Could not generate answer."
+        else:
+            answer = self.rag_chain.query_rag_chain(state.question)
+
         return State(
             question=state.question,
             retrieved_docs=state.retrieved_docs,
-            answer=answer or "Could not generate answer."
+            answer=answer,
         )

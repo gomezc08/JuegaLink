@@ -6,5 +6,11 @@ langchain-openai
 langchain-community
 langchain-classic
 langchain-neo4j
+langchain-text-splitters
+langgraph
 neo4j
 openai
+faiss-gpu
+faiss-cpu
+pydantic
+requests

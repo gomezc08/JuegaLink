@@ -63,7 +63,7 @@ class DocumentIngestion:
         Returns:
             List of documents
         """
-        loader = TextLoader((str(file, encoding="utf-8")))
+        loader = TextLoader(str(file))
         return loader.load()
     
     @staticmethod
@@ -98,14 +98,18 @@ class DocumentIngestion:
                 documents.extend(DocumentIngestion.load_text(source))
             
             # case 3: URL.
-            elif source.startswith("http//") or source.startswith("https//"):
+            elif source.startswith("http://") or source.startswith("https://"):
                 documents.extend(DocumentIngestion.load_web(source))
-            
-            # case 4: unavailable data source.
+
+            # case 4: markdown / text-like.
+            elif source.endswith(".md"):
+                documents.extend(DocumentIngestion.load_text(source))
+
+            # case 5: unavailable data source.
             else:
                 raise ValueError(
                     f"Unsupported source type: {source}. "
-                    "Use URL, .txt file, or PDF directory."
+                    "Use URL, .txt/.md file, or PDF directory."
                 )
         return documents
     
