@@ -13,5 +13,6 @@ openai
 faiss-gpu
 faiss-cpu
 pydantic
+scikit-learn
 requests
 gensim
