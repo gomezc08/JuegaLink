@@ -14,3 +14,4 @@ faiss-gpu
 faiss-cpu
 pydantic
 requests
+gensim
