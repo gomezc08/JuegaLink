@@ -124,31 +124,6 @@ class CFRecommender:
             u: self.recommend_users(u, k=k, already_following=already_following_dict.get(u, set()))
             for u in usernames
         }
-    
-    def explain_recommendation(self, target_user: str, recommended_user: str) -> dict:
-        """Return similarity and a short explanation for a (target, recommended) pair."""
-        if target_user not in self.username_to_idx:
-            return {"error": f"Target user '{target_user}' not found"}
-        if recommended_user not in self.username_to_idx:
-            return {"error": f"Recommended user '{recommended_user}' not found"}
-
-        target_emb = self.get_embedding(target_user).reshape(1, -1)
-        rec_emb = self.get_embedding(recommended_user).reshape(1, -1)
-        similarity = float(cosine_similarity(target_emb, rec_emb)[0][0])
-
-        top_similar = self.get_similar_users(target_user, k=50)
-        rank = next((i for i, (u, _) in enumerate(top_similar, 1) if u == recommended_user), None)
-
-        return {
-            "target_user": target_user,
-            "recommended_user": recommended_user,
-            "similarity_score": similarity,
-            "rank_in_top_similar": rank,
-            "explanation": (
-                f"Based on graph embeddings, {recommended_user} has similarity {similarity:.3f} "
-                f"with {target_user} (similar follow patterns)."
-            ),
-        }
 
 
 def main():
@@ -159,7 +134,7 @@ def main():
     target_user = "carlos_m"
     already_following = {"maria_g", "james_k", "olivia_k"}
 
-    print(f"\nCF recommendations for {target_user}\n")
+    print(f"\n--- CF recommendations for {target_user} ---\n")
     recs = recommender.recommend_users(
         username=target_user,
         k=10,
@@ -168,9 +143,7 @@ def main():
     )
     for i, (user, score) in enumerate(recs, 1):
         print(f"  {i}. {user} ({score:.3f})")
-    if recs:
-        exp = recommender.explain_recommendation(target_user, recs[0][0])
-        print(f"\nExplanation: {exp['explanation']}")
+    
 
     # Batch demo
     batch_users = ["carlos_m", "emma_s", "mike_r", "jenny_l", "ashley_r"]
