@@ -6,7 +6,6 @@ Ran periodically to keep model up-to-date.
 import os
 import pickle
 import logging
-from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Optional
 
@@ -117,50 +116,25 @@ class CBModelTrainer:
     ) -> Dict[str, str]:
         # Create output directory
         Path(self.output_dir).mkdir(parents=True, exist_ok=True)
-        
-        # Generate timestamp for versioning
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        
+                
         # Save complete model as pickle
         model_data = {
             'feature_matrix': feature_matrix,
             'usernames': usernames,
             'feature_names': feature_names,
-            'timestamp': timestamp,
             'n_users': len(usernames),
             'n_features': len(feature_names)
         }
         
         model_path = os.path.join(
-            self.output_dir, f"cb_model_{timestamp}.pkl"
+            self.output_dir, "cb_model.pkl"
         )
         with open(model_path, 'wb') as f:
             pickle.dump(model_data, f)
         
         logger.info("Saved CB model to: %s", model_path)
         
-        # Save metadata
-        metadata_path = os.path.join(
-            self.output_dir, f"cb_metadata_{timestamp}.txt"
-        )
-        with open(metadata_path, 'w') as f:
-            f.write(f"Training completed: {timestamp}\n")
-            f.write(f"Number of users: {len(usernames)}\n")
-            f.write(f"Number of features: {len(feature_names)}\n")
-            f.write(f"Feature matrix shape: {feature_matrix.shape}\n")
-            f.write(f"\nFeature names:\n")
-            for i, name in enumerate(feature_names, 1):
-                f.write(f"  {i}. {name}\n")
-            f.write(f"\nSample statistics:\n")
-            f.write(f"  Mean feature values: {feature_matrix.mean(axis=0)[:5]}...\n")
-            f.write(f"  Std feature values: {feature_matrix.std(axis=0)[:5]}...\n")
-        
-        logger.info("Saved metadata to: %s", metadata_path)
-        
-        return {
-            'model_path': model_path,
-            'metadata_path': metadata_path
-        }
+        return {'model_path': model_path}
     
     def train_model(self) -> Dict[str, str]:
         """
