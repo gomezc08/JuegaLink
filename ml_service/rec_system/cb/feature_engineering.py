@@ -52,35 +52,7 @@ class FeatureEngineer:
         """
         self.sports = SPORTS
         self.competitive_levels = COMPETITIVE_LEVELS
-        
-        # Load city coordinates (lat/long mapping)
-        self.city_coords = self._load_city_coords(city_coords_path)
-        
-        # Feature names (for interpretability)
         self.feature_names = self._build_feature_names()
-            
-    def _load_city_coords(self, city_coords_path: Optional[str]) -> Dict[str, Dict[str, float]]:
-        """
-        Load city to lat/long mapping from JSON file.
-        
-        Returns:
-            Dict mapping "City, State" -> {"lat": float, "lng": float}
-        """
-        if city_coords_path is None:
-            # Default location
-            default_path = Path(__file__).resolve().parent.parent / "data" / "city_coordinates.json"
-            city_coords_path = str(default_path)
-        
-        if not os.path.exists(city_coords_path):
-            logger.warning("City coordinates file not found: %s", city_coords_path)
-            logger.warning("Geographic features will use (0, 0) for unknown cities")
-            return {}
-        
-        with open(city_coords_path, 'r') as f:
-            coords = json.load(f)
-        
-        logger.info("Loaded coordinates for %d cities", len(coords))
-        return coords
     
     def _build_feature_names(self) -> List[str]:
         """Build ordered list of feature names."""
@@ -258,7 +230,6 @@ def main():
             'age': 28,
             'latitude': 47.6062,
             'longitude': -122.3321,
-            'state': 'WA',
             'favorite_sport': 'Soccer',
             'competitive_level': 'competitive'
         },
@@ -267,7 +238,6 @@ def main():
             'age': 25,
             'latitude': 45.5231,
             'longitude': -122.6765,
-            'state': 'OR',
             'favorite_sport': 'Tennis',
             'competitive_level': 'intermediate'
         },
@@ -276,7 +246,6 @@ def main():
             'age': 32,
             'latitude': 47.6062,
             'longitude': -122.3321,
-            'state': 'WA',
             'favorite_sport': 'Soccer',
             'competitive_level': 'recreational'
         }
