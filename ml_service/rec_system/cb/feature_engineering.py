@@ -18,20 +18,21 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger(__name__)
 
-# All possible sports (from your data)
+# All possible sports (lowercase for case-insensitive matching)
 SPORTS = [
-    'Soccer', 'Basketball', 'Tennis', 'Baseball', 'Volleyball',
-    'American Football', 'Golf', 'Swimming', 'Running', 'Cycling',
-    'Hockey', 'Cricket', 'Rugby', 'Badminton', 'Boxing',
-    'Martial Arts', 'Skating', 'Skiing', 'Surfing', 'Weightlifting', 'Yoga'
+    'soccer', 'basketball', 'tennis', 'baseball', 'volleyball',
+    'american football', 'golf', 'swimming', 'running', 'cycling',
+    'hockey', 'cricket', 'rugby', 'badminton', 'boxing',
+    'martial arts', 'skating', 'skiing', 'surfing', 'weightlifting',
+    'yoga', 'pickleball'
 ]
 
-# Competitive levels (ordered)
+# Competitive levels (lowercase keys, ordered)
 COMPETITIVE_LEVELS = {
-    'Beginner': 1,
-    'Intermediate': 2,
-    'Advanced': 3,
-    'Competitive': 4
+    'beginner': 1,
+    'intermediate': 2,
+    'advanced': 3,
+    'competitive': 4
 }
 
 # Age range for normalization
@@ -69,7 +70,8 @@ class FeatureEngineer:
         names.append('competitive_level')
         
         # Geographic features
-        names.append('coordinates')
+        names.append('latitude')
+        names.append('longitude')
         
         return names
     
@@ -106,9 +108,11 @@ class FeatureEngineer:
         """
         encoding = [0.0] * len(self.sports)
         
-        if favorite_sport and favorite_sport in self.sports:
-            idx = self.sports.index(favorite_sport)
-            encoding[idx] = 1.0
+        if favorite_sport:
+            normalized = favorite_sport.lower().strip()
+            if normalized in self.sports:
+                idx = self.sports.index(normalized)
+                encoding[idx] = 1.0
         
         return encoding
     
@@ -139,15 +143,20 @@ class FeatureEngineer:
         
         return float(normalized)
     
-    def _encode_coordinates(self, latitude: float, longitude: float) -> float:
+    def _encode_coordinates(self, latitude: float, longitude: float) -> List[float]:
         """
-        Encode geographic location as a single float.
-        
+        Encode geographic location as two normalized floats.
+
         Args:
             latitude: Latitude
             longitude: Longitude
+
+        Returns:
+            [normalized_latitude, normalized_longitude] each in [0, 1]
         """
-        return (latitude + 90) / 180.0  # Normalize to [0, 1]
+        lat_norm = (latitude + 90) / 180.0
+        lng_norm = (longitude + 180) / 360.0
+        return [lat_norm, lng_norm]
     
     def featurize_user(self, user_data: Dict) -> np.ndarray:
         """
@@ -179,7 +188,7 @@ class FeatureEngineer:
             user_data.get('latitude'),
             user_data.get('longitude')
         )
-        features.append(geo_features)
+        features.extend(geo_features)
         
         return np.array(features, dtype=np.float32)
     

@@ -68,7 +68,7 @@ class CBModelTrainer:
         RETURN 
             u.name AS username,
             u.age AS age,
-            u.favorite_sport AS favorite_sport,
+            u.sport AS favorite_sport,
             u.competitive_level AS competitive_level,
             u.latitude AS latitude,
             u.longitude AS longitude
