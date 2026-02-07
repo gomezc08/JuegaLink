@@ -1,6 +1,11 @@
 from ..connector import Connector
 from datetime import datetime
 import logging
+import os
+import requests
+from dotenv import load_dotenv
+
+load_dotenv()
 
 logging.basicConfig(
     level=logging.INFO,
@@ -105,6 +110,13 @@ class User:
             if state is not None:
                 updates.append("u.state = $state")
                 params["state"] = state
+            if city is not None and state is not None:
+                lat, lon = User.get_location_coordinates(city, state)
+                if lat is not None and lon is not None:
+                    updates.append("u.latitude = $latitude")
+                    updates.append("u.longitude = $longitude")
+                    params["latitude"] = lat
+                    params["longitude"] = lon
             if favorite_sport is not None:
                 updates.append("u.favorite_sport = $favorite_sport")
                 params["favorite_sport"] = favorite_sport
@@ -728,3 +740,33 @@ class User:
         finally:
             if driver:
                 driver.close()
+    
+    @staticmethod
+    def get_location_coordinates(city: str, state: str) -> tuple[float | None, float | None]:
+        """
+        Geocode city + state via ArcGIS. Returns (latitude, longitude) or (None, None) on failure.
+        """
+        url = "https://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates"
+        params = {
+            "city": city,
+            "region": state,
+            "f": "json",
+            "token": os.getenv("ESRI_API_KEY"),
+        }
+        try:
+            response = requests.get(url, params=params, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+            candidates = data.get("candidates") or []
+            if not candidates:
+                logger.warning("<user> No geocode candidates for city=%s state=%s", city, state)
+                return None, None
+            loc = candidates[0].get("location") or {}
+            lat = loc.get("y")
+            lon = loc.get("x")
+            if lat is None or lon is None:
+                return None, None
+            return float(lat), float(lon)
+        except Exception as e:
+            logger.warning("<user> Geocode failed for city=%s state=%s: %s", city, state, e)
+            return None, None
