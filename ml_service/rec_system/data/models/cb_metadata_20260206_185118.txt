@@ -1,0 +1,34 @@
+Training completed: 20260206_185118
+Number of users: 100
+Number of features: 24
+Feature matrix shape: (100, 24)
+
+Feature names:
+  1. age_normalized
+  2. sport_soccer
+  3. sport_basketball
+  4. sport_tennis
+  5. sport_baseball
+  6. sport_volleyball
+  7. sport_american_football
+  8. sport_golf
+  9. sport_swimming
+  10. sport_running
+  11. sport_cycling
+  12. sport_hockey
+  13. sport_cricket
+  14. sport_rugby
+  15. sport_badminton
+  16. sport_boxing
+  17. sport_martial_arts
+  18. sport_skating
+  19. sport_skiing
+  20. sport_surfing
+  21. sport_weightlifting
+  22. sport_yoga
+  23. competitive_level
+  24. coordinates
+
+Sample statistics:
+  Mean feature values: [0.16183913 0.         0.         0.         0.        ]...
+  Std feature values: [0.03556463 0.         0.         0.         0.        ]...
