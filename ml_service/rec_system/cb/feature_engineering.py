@@ -97,8 +97,7 @@ class FeatureEngineer:
         names.append('competitive_level')
         
         # Geographic features
-        names.append('latitude')
-        names.append('longitude')
+        names.append('coordinates')
         
         return names
     
@@ -168,40 +167,15 @@ class FeatureEngineer:
         
         return float(normalized)
     
-    def _encode_geography(self, city: Optional[str], state: Optional[str]) -> Dict[str, float]:
+    def _encode_coordinates(self, latitude: float, longitude: float) -> float:
         """
-        Encode geographic location as lat/long.
+        Encode geographic location as a single float.
         
         Args:
-            city: City name
-            state: State name
-            
-        Returns:
-            Dict with 'latitude' and 'longitude'
+            latitude: Latitude
+            longitude: Longitude
         """
-        # Try to find coordinates
-        location_key = None
-        
-        if city and state:
-            # Try "City, State" format
-            location_key = f"{city}, {state}"
-        elif city:
-            location_key = city
-        
-        # Look up coordinates
-        if location_key and location_key in self.city_coords:
-            coords = self.city_coords[location_key]
-            return {
-                'latitude': coords['lat'],
-                'longitude': coords['lng']
-            }
-        
-        # Default to (0, 0) if not found
-        # In production, you might want to geocode on the fly or use state centroids
-        return {
-            'latitude': 0.0,
-            'longitude': 0.0
-        }
+        return (latitude + 90) / 180.0  # Normalize to [0, 1]
     
     def featurize_user(self, user_data: Dict) -> np.ndarray:
         """
@@ -229,12 +203,11 @@ class FeatureEngineer:
         features.append(comp_level)
         
         # Geography
-        geo_features = self._encode_geography(
-            user_data.get('city'),
-            user_data.get('state')
+        geo_features = self._encode_coordinates(
+            user_data.get('latitude'),
+            user_data.get('longitude')
         )
-        features.append(geo_features['latitude'])
-        features.append(geo_features['longitude'])
+        features.append(geo_features)
         
         return np.array(features, dtype=np.float32)
     
@@ -283,7 +256,8 @@ def main():
         {
             'username': 'chris',
             'age': 28,
-            'city': 'Seattle',
+            'latitude': 47.6062,
+            'longitude': -122.3321,
             'state': 'WA',
             'favorite_sport': 'Soccer',
             'competitive_level': 'competitive'
@@ -291,7 +265,8 @@ def main():
         {
             'username': 'alice',
             'age': 25,
-            'city': 'Portland',
+            'latitude': 45.5231,
+            'longitude': -122.6765,
             'state': 'OR',
             'favorite_sport': 'Tennis',
             'competitive_level': 'intermediate'
@@ -299,7 +274,8 @@ def main():
         {
             'username': 'bob',
             'age': 32,
-            'city': 'Seattle',
+            'latitude': 47.6062,
+            'longitude': -122.3321,
             'state': 'WA',
             'favorite_sport': 'Soccer',
             'competitive_level': 'recreational'
