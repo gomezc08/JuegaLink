@@ -14,7 +14,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from dotenv import load_dotenv
 from neo4j import GraphDatabase
 
-from feature_engineering import FeatureEngineer
+from ml_service.rec_system.cb.feature_engineering import FeatureEngineer
 
 load_dotenv()
 

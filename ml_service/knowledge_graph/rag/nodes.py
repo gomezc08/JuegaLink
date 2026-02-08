@@ -2,14 +2,14 @@
 
 import logging
 from typing import List, Optional
-from .state import State
+from ml_service.knowledge_graph.rag.state import State
 
 logger = logging.getLogger(__name__)
 
 from langchain_core.documents import Document
 from langchain_core.tools import Tool
 from langchain_core.messages import HumanMessage, AIMessage
-from .rag_chain import RAGChain
+from ml_service.knowledge_graph.rag.rag_chain import RAGChain
 
 try:
     from langgraph.prebuilt import create_react_agent

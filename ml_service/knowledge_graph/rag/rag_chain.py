@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-from knowledge_graph.connector import Connector
+from ml_service.knowledge_graph.connector import Connector
 from langchain_openai import ChatOpenAI
 from langchain_classic.chains import GraphCypherQAChain
 from langchain_community.graphs import Neo4jGraph
