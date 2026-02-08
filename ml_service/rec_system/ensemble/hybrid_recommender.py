@@ -36,6 +36,10 @@ class HybridRecommender:
         # Convert to dictionaries for easy lookup
         cf_scores = {user: score for user, score in cf_result}
         cb_scores = {user: score for user, score in cb_result}
+
+        # Normalize scores BEFORE combining
+        # cf_scores = HybridRecommender._normalize_scores(cf_scores)
+        # cb_scores = HybridRecommender._normalize_scores(cb_scores)
         
         # get union of all users.
         all_users = set(cf_scores.keys()) | set(cb_scores.keys())
@@ -88,6 +92,36 @@ class HybridRecommender:
             return self._switch_recommender(username=username)
         else:
             raise ValueError(f"Invalid model name: {self.model_name}")
+    
+    @staticmethod
+    def _normalize_scores(scores_dict: dict) -> dict:
+        """
+        Normalize scores to [0, 1] range using min-max normalization.
+        
+        Args:
+            scores_dict: Dict of {username: score}
+            
+        Returns:
+            Dict of {username: normalized_score}
+        """
+        if not scores_dict:
+            return {}
+        
+        scores = list(scores_dict.values())
+        min_score = min(scores)
+        max_score = max(scores)
+        
+        # Handle edge case: all scores are the same
+        if max_score == min_score:
+            return {user: 1.0 for user in scores_dict}
+        
+        # Min-max normalization
+        normalized = {
+            user: (score - min_score) / (max_score - min_score)
+            for user, score in scores_dict.items()
+        }
+        
+        return normalized
 
 if __name__ == "__main__":
     hybrid_recommender = HybridRecommender()
