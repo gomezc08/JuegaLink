@@ -1,8 +1,8 @@
 """Module for creating our graph"""
 
 from langgraph.graph import StateGraph, END
-from ml_service.knowledge_graph.rag.nodes import Nodes
-from ml_service.knowledge_graph.rag.state import State
+from knowledge_graph.rag.nodes import Nodes
+from knowledge_graph.rag.state import State
 
 
 class GraphBuilder:

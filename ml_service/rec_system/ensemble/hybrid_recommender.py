@@ -3,9 +3,9 @@ Hybrid recommender system.
 Uses content-based and collaborative filtering to recommend users.
 """
 
-from ml_service.rec_system.cb.cb_recommender import CBRecommender
-from ml_service.rec_system.cf.cf_recommender import CFRecommender
-from ml_service.knowledge_graph.methods.user import User
+from rec_system.cb.cb_recommender import CBRecommender
+from rec_system.cf.cf_recommender import CFRecommender
+from knowledge_graph.methods.user import User
 from typing import List, Tuple
 
 class HybridRecommender:

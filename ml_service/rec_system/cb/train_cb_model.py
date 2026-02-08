@@ -13,7 +13,7 @@ import numpy as np
 from dotenv import load_dotenv
 from neo4j import GraphDatabase
 
-from ml_service.rec_system.cb.feature_engineering import FeatureEngineer
+from rec_system.cb.feature_engineering import FeatureEngineer
 
 load_dotenv()
 
