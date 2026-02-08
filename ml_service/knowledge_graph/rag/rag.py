@@ -2,7 +2,7 @@
 RAG entry point. The Flask route /query uses RAGChain from rag_chain.py.
 This file provides a simple programmatic interface and optional CLI for testing.
 """
-from .rag_chain import RAGChain
+from ml_service.knowledge_graph.rag.rag_chain import RAGChain
 
 def query(username: str, query_text: str, history: list = None):
     """Run a single RAG query. Use this or RAGChain directly."""

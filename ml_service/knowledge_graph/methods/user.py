@@ -420,6 +420,19 @@ class User:
             if driver:
                 driver.close()
     
+    def get_number_of_following(self, username: str):
+        """Get the number of following of a user. Returns the number of following."""
+        driver = None
+        try:
+            following = self.get_user_following(username=username)
+            return len(following)
+        except Exception as e:
+            logger.error(f"<user> Error getting number of following for user in Neo4j DB: {e}")
+            raise e
+        finally:
+            if driver:
+                driver.close()
+    
     def get_user(self, username: str):
         """Get a user by username. Returns user data dict or None."""
         driver = None
