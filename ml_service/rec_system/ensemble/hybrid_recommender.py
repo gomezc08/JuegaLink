@@ -17,6 +17,7 @@ class HybridRecommender:
         self.cb_weight = 0.5
         self.k = 10
         self.follower_threshold = 10
+        self.model_name = "weighted"
     
     def _weighted_recommender(self, username: str) -> List[Tuple[str, float]]:
         """
@@ -71,6 +72,22 @@ class HybridRecommender:
 
         print(f"Using content-based filtering for user: {username}")
         return self.cb_recommender.recommend_users(username=username, k=self.k)
+    
+    def recommend(self, username: str) -> List[Tuple[str, float]]:
+        """
+        Recommend users for a given username.
+        Args:
+            username: The username of the user to recommend users for.
+
+        Returns:
+            A list of tuples of (username, score) sorted by score (descending).
+        """
+        if self.model_name == "weighted":
+            return self._weighted_recommender(username=username)
+        elif self.model_name == "switched":
+            return self._switch_recommender(username=username)
+        else:
+            raise ValueError(f"Invalid model name: {self.model_name}")
 
 if __name__ == "__main__":
     hybrid_recommender = HybridRecommender()
