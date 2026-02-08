@@ -64,8 +64,8 @@ class HybridRecommender:
             A list of tuples of (username, score) sorted by score (descending).
         """
         # grab number of followers from the user.
-        number_of_following = self.user_methods.get_number_of_following(username=username)
-        if number_of_following >= self.follower_threshold:
+        number_of_followers = self.user_methods.get_number_of_followers(username=username)
+        if number_of_followers >= self.follower_threshold:
             print(f"Using collaborative filtering for user: {username}")
             return self.cf_recommender.recommend_users(username=username, k=self.k)
 
