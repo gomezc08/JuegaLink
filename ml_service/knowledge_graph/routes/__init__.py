@@ -1,1 +1,1 @@
-__all__ = ["UserRoutes", "SportRoutes", "FieldRoutes", "EventRoutes", "PostRoutes", "RagRoutes"]
+__all__ = ["UserRoutes", "SportRoutes", "FieldRoutes", "EventRoutes", "PostRoutes", "RagRoutes", "RecRoutes"]

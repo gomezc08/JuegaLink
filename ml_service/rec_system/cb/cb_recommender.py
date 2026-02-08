@@ -14,7 +14,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from dotenv import load_dotenv
 from neo4j import GraphDatabase
 
-from ml_service.rec_system.cb.feature_engineering import FeatureEngineer
+from rec_system.cb.feature_engineering import FeatureEngineer
 
 load_dotenv()
 
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 class CBRecommender:
     def __init__(self):
-        model_path = "ml_service/rec_system/data/models/cb_model.pkl"
+        model_path = "rec_system/data/models/cb_model.pkl"
         with open(model_path, 'rb') as f:
             model_data = pickle.load(f)
         

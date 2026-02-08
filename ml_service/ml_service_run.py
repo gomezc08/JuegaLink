@@ -12,6 +12,7 @@ from knowledge_graph.routes.field_route import field_bp
 from knowledge_graph.routes.post_route import post_bp
 from knowledge_graph.routes.rag_route import rag_bp
 from knowledge_graph.methods import User
+from knowledge_graph.routes.rec_route import rec_bp
 
 logging.basicConfig(
     level=logging.INFO,
@@ -35,6 +36,7 @@ app.register_blueprint(event_bp)
 app.register_blueprint(field_bp)
 app.register_blueprint(post_bp)
 app.register_blueprint(rag_bp)
+app.register_blueprint(rec_bp)
 
 # Health check endpoint
 @app.route('/health', methods=['GET'])
